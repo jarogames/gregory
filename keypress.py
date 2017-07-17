@@ -33,6 +33,8 @@ def producer():
         key=getkey()
         print('KEY=',key)
 
+        if key==b'r':key=b'register'
+
         if key==b' ':key=b'SPC'
         if key==b'\n':key=b'ENT'
         if key==b'\x7f':key=b'BKSP'
