@@ -50,6 +50,12 @@ logge0 = setup_logger( name="head",logfile=logfile, level=loglevel,formatter=for
 logger = setup_logger( name="main",logfile=logfile, level=loglevel,formatter=formatter )#to 1-50
 
 
+#########################################
+#
+#  PULL ZMQ - commands 
+#
+##########################################
+
 def command_parser():
     context = zmq.Context()
     receiver = context.socket(zmq.PULL)
@@ -59,16 +65,19 @@ def command_parser():
     x=0
     while True:
         x=x+1
-        logger.info('waiting to receive')
+        #logger.info('waiting to receive')
         result = receiver.recv_json()
-        #result = receiver.recv(flags=zmq.NOBLOCK)
-        logger.info('out of receive')
-        if   result['consumer'] in collecter_data:
-            collecter_data[result['consumer']] = collecter_data[result['consumer']] + 1
-            logger.info('received {:d} {}'.format(result['consumer'],result['num']) )
+        #result = receiver.recv(flags=zmq.NOBLOCK)# why not work?
+        #logger.info('out of receive')
+        if  result['client'] in collecter_data:
+            collecter_data[result['client']] = collecter_data[result['client']] + 1
+            logger.info('received {:d} {}'.format(result['client'],result['cmd']) )
         else:
-            collecter_data[result['consumer']] = 1
-            logger.warning('reset with {} {}'.format(result['consumer'],result['num']) )
+            if result['cmd']=='register':
+                collecter_data[result['client']] = 1
+                logger.warning('NEW client {} registered {}'.format(result['client'],result['cmd']) )
+            else:
+                logger.error('NEW client {} MUST register - not {}'.format(result['client'],result['cmd']) )
 
         if x%10 == 0:
             pprint.pprint(collecter_data)
