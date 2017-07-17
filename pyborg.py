@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+############################################
+#  python interface to a regular BORG backup
+#
+#
 ####################################
 #  PYTHON TEPLATE 
 # ===================
@@ -51,21 +55,52 @@ logger = setup_logger( name="main",logfile=logfile, level=loglevel,formatter=for
 
 #######################################  input: cmdline/keypress/programs #####
 def command_parser():
-    '''
-    Every PUSH socket can connect.
-    '''
     context = zmq.Context()
     receiver = context.socket(zmq.PULL)
+    ##   #receiver.RCVTIMEO = 1000 ### in zmq 3.0 #receiver.LINGER=0  ##
     receiver.bind("tcp://127.0.0.1:5558")
     logger.info('ZMQ PULL socket on 5558 is open')
+    poller = zmq.Poller()
+    poller.register(receiver, zmq.POLLIN) # POLLIN for recv, POLLOUT for send
     collecter_data = {}
     x=0
     while True:
         x=x+1
-        logger.info('waiting to receive')
+        #logger.info('waiting to receive')
+        #result = receiver.recv_json()
+        event=poller.poll(100)  # wait 100ms
+        if event:
+            result = receiver.recv_json()
+            logger.info('out of receive')
+            if   result['consumer'] in collecter_data:
+                collecter_data[result['consumer']] = collecter_data[result['consumer']] + 1
+                logger.info('received {:d} {}'.format(result['consumer'],result['num']) )
+            else:
+                collecter_data[result['consumer']] = 1
+                logger.warning('reset with {} {}'.format(result['consumer'],result['num']) )
+
+            if x%10 == 0:
+                pprint.pprint(collecter_data)
+                time.sleep(1)
+def command_parser_init():
+    '''
+    poller and receiver it is clear: 
+    collecter_data  contains number of commands comming from a PUSH;1==new
+    '''
+    context = zmq.Context()
+    receiver = context.socket(zmq.PULL)
+    ##   #receiver.RCVTIMEO = 1000 ### in zmq 3.0 #receiver.LINGER=0  ##
+    receiver.bind("tcp://127.0.0.1:5558")
+    logger.info('ZMQ PULL socket on 5558 is open')
+    poller = zmq.Poller()
+    poller.register(receiver, zmq.POLLIN) # POLLIN for recv, POLLOUT for send
+    collecter_data = {}
+    return poller,receiver,collecter_data
+def command_parser_step(poller,receiver,collecter_data,x):
+    event=poller.poll(100)  # wait 100ms
+    if event:
         result = receiver.recv_json()
-        #result = receiver.recv(flags=zmq.NOBLOCK)# i dont know howto nobloock
-        #logger.info('out of receive')
+        logger.info('out of receive')
         if   result['consumer'] in collecter_data:
             collecter_data[result['consumer']] = collecter_data[result['consumer']] + 1
             logger.info('received {:d} {}'.format(result['consumer'],result['num']) )
@@ -76,14 +111,36 @@ def command_parser():
         if x%10 == 0:
             pprint.pprint(collecter_data)
             time.sleep(1)
-                
+    return x+1
+
+###########################################FUNCTIONS###
+#
+# 
+#
+######################################################
+def mail_result():
+    logger.infoP("mailing")
+    return
+def borg_create():
+    logger.infoP("creating BORG")
+    return
+def borg_status():
+    logger.infoP("geting   BORG status")
+    return
+
 ################################### CODE #############
 #
 #      CODE 
 #
 #######################################################
 logge0.info('====== START argument=%s ====',args.book)  # start LOG file
-command_parser()
+poller,receiver,collecter_data=command_parser_init()
+x=0
+while 1==1:
+    #logger.info("entering parser")
+    x=command_parser_step(poller,receiver,collecter_data,x)
+    #command_parser()  # i would like to have None or INPUT
+    #logger.info("out of  parser")
 #logge0.info('logging into %s',logfile)  # not actually important
 logger.debug("hello")
 logger.info("info")
