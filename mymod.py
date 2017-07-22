@@ -10,7 +10,7 @@
 import argparse
 ###
 import logging
-from logzero import setup_logger,LogFormatter
+from logzero import setup_logger,LogFormatter,colors
 ###  to get prgname
 import os, sys
 ###  to wait in RECV queue
@@ -19,36 +19,66 @@ import zmq
 import pprint # print json line
 
 ######################################### arguments parser ####
-parser=argparse.ArgumentParser(description="""
- ... 
- ...
-""")
+parser=None
+args=None
+def argparse_ini(description="..."):
+    global parser,args
+    parser=argparse.ArgumentParser(description=description)
+   
+#parser.add_argument('book', default="", help='')  # obligatory arg.
 
-parser.add_argument('book', default="", help='')  # obligatory arg.
-parser.add_argument('--debug', action="store_true", help='debug level log')#,required=True
-args=parser.parse_args()
-print('Main argument=',args.book)
+def argparse_fin():
+    global parser,args
+    parser.add_argument('--debug', action="store_true", help='debug level log')#,required=True
+    args=parser.parse_args()
+    #print('Main argument=',args.book)
 
 ####################################### logging, logzero ######
+logger=None
+logger_head=None
+def logging_ini():
+    global logging,logger,logger_head
+    logging.addLevelName(19, "+PLUS")
+    def infoP(self, message, *args, **kws):
+        if self.isEnabledFor(19):self._log(19, message, args, **kws) 
+    logging.Logger.infoP = infoP
+    LogFormatter.DEFAULT_COLORS[19] = colors.Fore.CYAN
+    
+    logging.addLevelName(18, "!PROBLEM")
+    def infoE(self, message, *args, **kws):
+        if self.isEnabledFor(18):self._log(18, message, args, **kws) 
+    logging.Logger.infoE = infoE
+    LogFormatter.DEFAULT_COLORS[18] = colors.Fore.RED
 
-logging.addLevelName(19, "+PLUS")
-def infoP(self, message, *args, **kws):
-    if self.isEnabledFor(19):self._log(19, message, args, **kws) 
-logging.Logger.infoP = infoP
-logging.addLevelName(18, "!PROBLEM")
-def infoE(self, message, *args, **kws):
-    if self.isEnabledFor(18):self._log(18, message, args, **kws) 
-logging.Logger.infoE = infoE
+    logging.addLevelName(17, "xBADTHING")
+    def infoX(self, message, *args, **kws):
+        if self.isEnabledFor(17):self._log(17, message, args, **kws) 
+    logging.Logger.infoX = infoX
+    LogFormatter.DEFAULT_COLORS[17] = colors.Fore.CYAN
 
-log_forma0 = '%(color)s%(levelname)1.1s%(levelno)s.  %(asctime)s %(module)s:%(lineno)d%(end_color)s %(message)s'
-log_format = '%(color)s%(levelname)1.1s... %(end_color)s %(message)s'  # i...  format
-formatte0 = LogFormatter(fmt=log_forma0,datefmt='%Y-%m-%d %H:%M:%S')
-formatter = LogFormatter(fmt=log_format)
-loglevel=1 if args.debug==1 else 11  # all info, but not debug
-logfile=os.path.splitext(os.path.basename(sys.argv[0]) )[0]+'.log'
-logge0 = setup_logger( name="head",logfile=logfile, level=loglevel,formatter=formatte0 )#to 1-50
-logger = setup_logger( name="main",logfile=logfile, level=loglevel,formatter=formatter )#to 1-50
+    logging.addLevelName(16, "cCOMMAND")
+    def infoC(self, message, *args, **kws):
+        if self.isEnabledFor(16):self._log(16, message, args, **kws) 
+    logging.Logger.infoC = infoC
+    LogFormatter.DEFAULT_COLORS[16] = colors.Fore.YELLOW
 
+    log_forma0 = '%(color)s%(levelname)1.1s%(levelno)s.  %(asctime)s %(module)s:%(lineno)d%(end_color)s %(message)s'
+    log_forma0 = '%(color)s%(asctime)s %(message)s%(end_color)s'
+    log_format = '%(color)s%(levelname)1.1s... %(end_color)s %(message)s'  # i...  format
+    formatte0 = LogFormatter(fmt=log_forma0,datefmt='%Y-%m-%d %H:%M:%S')
+    formatter = LogFormatter(fmt=log_format)
+    loglevel=1 if args.debug==1 else 11  # all info, but not debug
+    logfile=os.path.splitext(os.path.basename(sys.argv[0]) )[0]+'.log'
+    logger_head = setup_logger( name="head",logfile=logfile, level=loglevel,formatter=formatte0 )#to 1-50
+    logger = setup_logger( name="main",logfile=logfile, level=loglevel,formatter=formatter )#to 1-50
+
+def logging_fin():
+    global logging,logger,logger_head
+    logger_head.info("======================================================")
+    logger_head.info("====== START /%s ====",args)
+    logger.info("ok")
+    return
+        
 #######################################  input: cmdline/keypress/programs #####
 #########################################
 #
@@ -106,7 +136,7 @@ def command_parser_step(poller,receiver,collecter_data,x):
 #
 #######################################################
 if __name__ == "__main__":
-    logge0.info('====== START argument=%s ====',args.book)  # start LOG file
+    logger_head.info('====== START argument=%s ====',args.book)  # start LOG file
     #- init command parser
     poller,receiver,collecter_data=command_parser_init()
     x=0
@@ -117,7 +147,7 @@ if __name__ == "__main__":
         if cmd=="q": break
         x=x+1
         #- end command parser loop    
-    #logge0.info('logging into %s',logfile)  # not actually important
+    #logger_head.info('logging into %s',logfile)  # not actually important
     logger.debug("hello")
     logger.info("info")
     logger.warn("warn")
