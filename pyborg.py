@@ -127,6 +127,11 @@ def borg_create():
 def borg_status():
     logger.infoP("geting   BORG status")
     return
+#
+# RETURN CODES :  2  is probably LOCK
+# ssh pix1  - 
+#
+#
 
 ################################### CODE #############
 #
