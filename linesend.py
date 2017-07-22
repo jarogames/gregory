@@ -2,7 +2,7 @@
 import time
 import zmq
 import random
-consumer_id = random.randrange(1,10005)
+consumer_id = random.randrange(1,100050)
 
 import  sys, os
 
@@ -22,7 +22,7 @@ def producer():
     # Start your result manager and workers before you start your producers
     for num in range(200):
         line=getline()
-        work_message =  { 'consumer' : consumer_id, 'num' : line}
+        work_message =  { 'client' : consumer_id, 'cmd' : line}
         #{ 'num' : num }
         zmq_socket.send_json(work_message)
         time.sleep(0.05)

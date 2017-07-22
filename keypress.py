@@ -2,7 +2,7 @@
 import time
 import zmq
 import random
-consumer_id = random.randrange(1,10005)
+consumer_id = random.randrange(1,100050)
 
 import termios, sys, os
 TERMIOS = termios
@@ -33,6 +33,8 @@ def producer():
         key=getkey()
         print('KEY=',key)
 
+        if key==b'r':key=b'register'
+
         if key==b' ':key=b'SPC'
         if key==b'\n':key=b'ENT'
         if key==b'\x7f':key=b'BKSP'
@@ -49,7 +51,7 @@ def producer():
         key=key.decode('utf8')
         print('KEY=',key)
         ##print(key, end='' )
-        work_message =  { 'consumer' : consumer_id, 'num' : key}
+        work_message =  { 'client' : consumer_id, 'cmd' : key}
         #{ 'num' : num }
         zmq_socket.send_json(work_message)
         time.sleep(0.05)
