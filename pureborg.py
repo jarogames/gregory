@@ -283,6 +283,7 @@ for li in pairs:
     if last==None:
         countdown("initialize new repository?",15)
         borg_init( li[0] )
+        last=""
     if last is "": # empty line
         logger.warning("there was empty line in repo")
         #countdown("there was empty line in repo",3)
