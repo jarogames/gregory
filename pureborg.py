@@ -92,17 +92,16 @@ def load_addr_repo_pairs():
     return li
 
 
-def mail_out_results( SIG, ok, nok ):
+def mail_out_results( SIG, ok, nokq , nok):
     global results
-    texth=SIG+" OK="+str(ok)+" BAD="+str(nok)
-    logger.infoP("mailing results: OK="+str(ok)+" BAD="+str(nok) )
-   
-    # Create a text/plain message
-    #    msg = MIMEText(fp.read())
+    texth=" OK="+str(ok)+" ??="+str(nokq)+" BAD="+str(nok) 
+    logger.infoP("mailing results: "+texth )
+    texth=SIG+" "+texth
+    # Create a text/plain message #    msg = MIMEText(fp.read())
     textb=""
     for i in results:
         textb=textb+"  ".join(i)+"\n"
-    msg=MIMEText( textb )
+    msg=MIMEText( textb + "\n\n\n??...no ping\nxx...error\n")
     me="borg@localhost"# == the sender's email address
     you="root@localhost"# you == the recipient's email address
     msg['Subject'] = 'BORG '+texth
@@ -189,7 +188,8 @@ def borg_create( repo , sig, directory ):
             directory=mount_sshfs(directory)
             if directory=="": return "??"
         except subprocess.CalledProcessError as grepexc:
-            logger.error("error code "+ str(grepexc.returncode)+ grepexc.output.decode('utf8'))
+            #logger.error("error code "+ str(grepexc.returncode)+ grepexc.output.decode('utf8'))
+            logger.error("error code "+ str(grepexc.returncode) )
             logger.error("no host - no directory")
             return "??"
 
@@ -234,15 +234,18 @@ def borg_list( repo ):
     '''
     I use `borg list repo`
     and `borg info repo::last_stamp`   
+    returns ""  -    repo ok BUT  no stamp present
+    returns None  -  repo does NOT exist
     '''
     CMD="borg list  "+repo
     logger.infoC( CMD)
     try:
         reslist=subprocess.check_output( CMD, shell=True ).decode("utf8").rstrip().split("\n")
-        logger.infoP("ok"+str(len(reslist)))
+        logger.infoP("ok "+str(len(reslist)))
     except subprocess.CalledProcessError as grepexc:
+        # deosnot exist ... error 2
         logger.error("error code "+ str(grepexc.returncode)+ grepexc.output.decode('utf8'))
-        return ""
+        return None
     if not reslist[-1].rstrip()=="": 
         res=reslist[-1].split()[0]
     else:
@@ -271,27 +274,32 @@ logger.info( SIGNATURE )
 pairs=load_addr_repo_pairs()
 results=[]
 ok=0
-nok=0
+nokq=0 # ?? ping
+nok=0  # error
 for li in pairs:
     logger_head.infoX( li[1] )
     logger.info( li[0]+" - "+li[1] )
     last=borg_list( li[0] )
-    if last=="":
+    if last==None:
         countdown("initialize new repository?",15)
         borg_init( li[0] )
-    if last=="X":
-        countdown("Unknown directory os host",15)
-        continue
+    if last is "": # empty line
+        logger.warning("there was empty line in repo")
+        #countdown("there was empty line in repo",3)
+        #continue
     logger_head.infoC(last+" ==> "+SIGNATURE)
     countdown("create new backup?",8)
     res=borg_create( li[0], SIGNATURE , li[1] )
     results.append( [res,li[1]]  )
-    print( results )
+    #print( results )
     if res=="ok":
         borg_info(li[0], SIGNATURE)
         ok=ok+1
+    elif res=="??":
+        nokq=nokq+1
     else:
         nok=nok+1
-mail_out_results(SIGNATURE, ok, nok )
+##########################################
+mail_out_results(SIGNATURE, ok, nokq, nok )
 print( results )
 

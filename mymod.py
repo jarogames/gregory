@@ -106,7 +106,7 @@ def command_parser_step(poller,receiver,collecter_data,x):
     result['cmd']=""
     if event:
         result = receiver.recv_json()
-        logger.info('out of receive')
+        #logger.info('out of receive')
         if  result['client'] in collecter_data:
             collecter_data[result['client']] = collecter_data[result['client']] + 1
             logger.info('received {:d} {}'.format(result['client'],result['cmd']) )
@@ -136,7 +136,12 @@ def command_parser_step(poller,receiver,collecter_data,x):
 #
 #######################################################
 if __name__ == "__main__":
-    logger_head.info('====== START argument=%s ====',args.book)  # start LOG file
+ 
+    argparse_ini()
+    argparse_fin()
+    logging_ini()
+    logging_fin()
+    
     #- init command parser
     poller,receiver,collecter_data=command_parser_init()
     x=0
