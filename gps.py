@@ -30,6 +30,7 @@ import time
 import threading
 #####import context
 import zmq
+import tkinter_loop
 
 #from mymod import logge0,args,command_parser_init,command_parser_step
 from mymod import command_parser_init,command_parser_step
@@ -57,7 +58,7 @@ def gps_poll():
         else:
             string=""
         #logger.info(string)
-        if string==b'q':break
+        if string==b'q' or string==b'quit':break
     logger.error("OUT of gps_poll thread")
     return
 
@@ -78,6 +79,7 @@ def kpress_poll():
     regs=0
     while (1==1):
         #time.sleep(0.1)
+        # problem here... this stays HANGING
         keypress.producer_onestep(zmq_socket,True,True,regs)
         regs=1
         event = poller.poll(100)
@@ -85,12 +87,15 @@ def kpress_poll():
             string=receiver.recv()
         else:
             string=""
-        #logger.info(string)
-        if string==b'q':break
+        #if not string is None and string!="":logger.info(string)
+        if string==b'q' or string==b'quit':break
     logger.error("OUT of kpress_poll thread")
     return
 
+########################
+#   TK INTER LOOP
 def tkinter_poll():
+    
     context =  zmq.Context.instance()
     receiver = context.socket(zmq.PAIR)
     receiver.connect("inproc://tkinter_poll")
@@ -104,19 +109,24 @@ def tkinter_poll():
         logger.error("cannot import tkinter")
         die=True
     #if die:break
-    while (1==1):
-        #-----------------------
-        #translate_gps_line()
-        if not die:print(".",end="")
-        #if not die:
-        event = poller.poll(100)
-        if event:
-            string=receiver.recv()
-        else:
-            string=""
-        #logger.info(string)
-        if string==b'q':break
-    logger.error("OUT of tkinter_poll thread")
+    # thi will also register input and 
+    tkinter_loop.tk_init()  # tk_root.mainloop()
+    tkinter_loop.tk_root.mainloop()
+    #tkinter_loop.tk_root.quit()
+    # while (1==1):
+    #     #-----------------------
+    #     #translate_gps_line()
+    #     if not die:print(".",end="")
+    #     #if not die:
+    #     event = poller.poll(100)
+    #     if event:
+    #         string=receiver.recv()
+    #     else:
+    #         string=""
+    #     #logger.info(string)
+    #     if string==b'q':break
+    logger.error("OUT of tkinter_poll thread ... wait 0.5s")
+    time.sleep(0.5)
     return
 #################################
 #
@@ -166,7 +176,7 @@ if __name__ == "__main__":
             s_gps.send_string(cmd)
             s_key.send_string(cmd)
             s_tki.send_string(cmd)
-        if cmd=="q": break
+        if cmd=="q" or cmd=="quit": break
         x=x+1
     #t_gps_poll.exit()
     #t_keypress.exit()

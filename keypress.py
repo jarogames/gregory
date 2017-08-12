@@ -14,11 +14,13 @@ def getkey():
     old = termios.tcgetattr(fd)
     new = termios.tcgetattr(fd)
     new[3] = new[3] & ~TERMIOS.ICANON & ~TERMIOS.ECHO
-    new[6][TERMIOS.VMIN] = 1
-    new[6][TERMIOS.VTIME] = 0
+    #was 1 , 0;   now to nonblok  0,1
+    new[6][TERMIOS.VMIN] = 0
+    new[6][TERMIOS.VTIME] = 1
     termios.tcsetattr(fd, TERMIOS.TCSANOW, new)
     c = None
     try:
+        # I WANT TO HAVE non blocking
         c = os.read(fd, 999)
     finally:
         termios.tcsetattr(fd, TERMIOS.TCSAFLUSH, old)

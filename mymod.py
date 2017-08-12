@@ -110,7 +110,8 @@ def command_parser_step(poller,receiver,collecter_data,x):
         #logger.info('out of receive')
         if  result['client'] in collecter_data:
             collecter_data[result['client']] = collecter_data[result['client']] + 1
-            logger.info('from {:d}: {}'.format(result['client'],result['cmd']) )
+            if result['cmd']!="":
+                logger.info('from {:d}: {}'.format(result['client'],result['cmd']) )
         else:
             if result['cmd']=='register':
                 collecter_data[result['client']] = 1
