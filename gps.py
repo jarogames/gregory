@@ -93,7 +93,7 @@ def kpress_poll():
     return
 
 ########################
-#   TK INTER LOOP
+#   TK INTER LOOP - is blocking...
 def tkinter_poll():
     
     context =  zmq.Context.instance()
@@ -175,7 +175,8 @@ if __name__ == "__main__":
         if cmd!="":
             s_gps.send_string(cmd)
             s_key.send_string(cmd)
-            s_tki.send_string(cmd)
+            s_tki.send_string(cmd) # but it is blocking
+            tkinter_loop.tk_command=cmd
         if cmd=="q" or cmd=="quit": break
         x=x+1
     #t_gps_poll.exit()

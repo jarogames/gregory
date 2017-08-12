@@ -86,7 +86,7 @@ def tk_loop():
         tk_zmq_socket.send_json(work_message)
         print("i... keypress sent")
 
-    if tk_command=='quit':
+    if tk_command=='quit' or tk_command=="q":
         print('x... tk_root to quit..........')
         tk_root.quit()
         print('x... tk_root quitted')
