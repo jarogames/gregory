@@ -173,11 +173,19 @@ def getsock():
         server_address = ('localhost', 2947)
         print( '  {:s}:{:d} ...'.format(server_address[0],server_address[1]),end="")
         time.sleep(1)
-        sock.connect(server_address)
+        die=False
+        try:
+            sock.connect(server_address)
+        except:
+            die=True
+            print("X... SOCKET REFUSED ")
+        if die:return None
         # Send data
         message = '?WATCH={"enable":true,"nmea":true}\n'
         sock.sendall( str.encode(message) )
         print('WATCH sent', end='\n')
+        return sock
+    else:
         return sock
 
 ###################################
@@ -215,7 +223,9 @@ def get_dist_prec(lon2, lat2, lon1, lat1):
 def translate_gps_line():
     global sock
     #    print(i,"/" , end="\r" )
-    getsock()    
+    if getsock()==None:
+        print("x... returning without socket")
+        return
     # --- clear data and read -----------------------------    
     data=""
 

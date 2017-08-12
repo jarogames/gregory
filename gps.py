@@ -1,5 +1,20 @@
 #!/usr/bin/env python3
-import mymod  #.py appended automatically
+'''
+based on mymod
+one thread-   gps poll
+next          keypress
+check with gpsmon
+- nex  staticmap
+#pip3 install --user git+git://github.com/komoot/staticmap@master --upgrade #
+TO INSTALL TILES
+use foxtrotgps ; local server webmap..py and /tmp storage
+OR
+# downloadosmtiles --baseurl=http://localhost:8900 --lat=43:46.1  --lon=8.48:12.7 --zoom=12
+
+
+'''
+import mymod  
+# .py is appended automatically
 
 mymod.argparse_ini()
 mymod.argparse_fin()
@@ -28,12 +43,10 @@ import keypress
 #################################
 def gps_poll():
     context =  zmq.Context.instance()
-    # receive from master
     receiver = context.socket(zmq.PAIR)
     receiver.connect("inproc://gps_poll")
     poller = zmq.Poller()
     poller.register(receiver, zmq.POLLIN)
-    #string = receiver.recv()
     logger.info("in     gps_poll thread")
     while (1==1):
         #time.sleep(0.1)
@@ -49,7 +62,7 @@ def gps_poll():
     return
 
 
-def kpress():
+def kpress_poll():
     context =  zmq.Context.instance()
     # receive from master
     receiver = context.socket(zmq.PAIR)
@@ -57,7 +70,7 @@ def kpress():
     poller = zmq.Poller()
     poller.register(receiver, zmq.POLLIN)
     #string = receiver.recv()
-    logger.info("in     kpress_poll thread (i cannot exit now!!!)")
+    logger.info("in     kpress_poll thread ")
     #### THE BIG LOOP================
     context = zmq.Context()
     zmq_socket = context.socket(zmq.PUSH)
@@ -76,6 +89,35 @@ def kpress():
         if string==b'q':break
     logger.error("OUT of kpress_poll thread")
     return
+
+def tkinter_poll():
+    context =  zmq.Context.instance()
+    receiver = context.socket(zmq.PAIR)
+    receiver.connect("inproc://tkinter_poll")
+    poller = zmq.Poller()
+    poller.register(receiver, zmq.POLLIN)
+    logger.info("in     tkinter_poll thread")
+    die=False
+    try:
+        import tkinter
+    except:
+        logger.error("cannot import tkinter")
+        die=True
+    #if die:break
+    while (1==1):
+        #-----------------------
+        #translate_gps_line()
+        if not die:print(".",end="")
+        #if not die:
+        event = poller.poll(100)
+        if event:
+            string=receiver.recv()
+        else:
+            string=""
+        #logger.info(string)
+        if string==b'q':break
+    logger.error("OUT of tkinter_poll thread")
+    return
 #################################
 #
 #  MAIN
@@ -89,6 +131,9 @@ if __name__ == "__main__":
     context2 = zmq.Context.instance()
     s_key = context2.socket(zmq.PAIR)
     s_key.bind("inproc://kpress_poll")
+    context3 = zmq.Context.instance()
+    s_tki = context2.socket(zmq.PAIR)
+    s_tki.bind("inproc://tkinter_poll")
     ############################## what should be initialized
     #                            # DO NOW:
     ### 1st thread - i would love to poll USB and fill GPS
@@ -96,8 +141,10 @@ if __name__ == "__main__":
     t_gps_poll = threading.Thread(target=gps_poll)
     t_gps_poll.start()
     keypress.consumer_id=0
-    t_keypress = threading.Thread(target=kpress)
+    t_keypress = threading.Thread(target=kpress_poll)
     t_keypress.start()
+    t_tkinter = threading.Thread(target=tkinter_poll)
+    t_tkinter.start()
     ################## - init command parser
     poller,receiver,collecter_data=command_parser_init()
     x=0
@@ -115,8 +162,10 @@ if __name__ == "__main__":
         #logger.info("entering parser") # wait 100ms fin c.p.step
         cmd=command_parser_step(poller,receiver,collecter_data,x)
         if len(cmd)>0:print(">",cmd)
-        if cmd!="":s_gps.send_string(cmd)
-        if cmd!="":s_key.send_string(cmd)
+        if cmd!="":
+            s_gps.send_string(cmd)
+            s_key.send_string(cmd)
+            s_tki.send_string(cmd)
         if cmd=="q": break
         x=x+1
     #t_gps_poll.exit()
