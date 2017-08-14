@@ -38,7 +38,11 @@ from mymod import command_parser_init,command_parser_step
 ## From gps_socket (my) global variable should be loaded.
 from gps_socket import translate_gps_line, gps_info
 
-import keypress 
+## keypressing in terminal - now nonblocking
+import keypress
+
+from staticmap import StaticMap, CircleMarker, Line
+
 #################################
 # procedures for threading:
 #################################
@@ -134,6 +138,7 @@ def tkinter_poll():
 #
 #################################
 if __name__ == "__main__":
+
     # Prepare our context and sockets
     context = zmq.Context.instance()
     s_gps = context.socket(zmq.PAIR)
@@ -153,18 +158,27 @@ if __name__ == "__main__":
     keypress.consumer_id=0
     t_keypress = threading.Thread(target=kpress_poll)
     t_keypress.start()
+    #tkinter_loop.IMX,tkinter_loop.IMY=tkinter_loop.monitor_size()
     t_tkinter = threading.Thread(target=tkinter_poll)
     t_tkinter.start()
     ################## - init command parser
+    #######=======
+    #######=======
     poller,receiver,collecter_data=command_parser_init()
     x=0
-    ######### here all commands will pass in an infinite loop 
+    ######### here all commands will pass in an infinite loop
     while 1==1:
         # STATUS LINE HERE
         if gps_info['fix']=='+' and gps_info['dist']>0.:
             print(' '+gps_info['fix']+gps_info['timex']+
               " ({:6.4f},{:6.4f}){:6.1f} km/h {:6.1f} m H{:03.0f}  {:.1f}        ".format( gps_info['XCoor'],gps_info['YCoor'],gps_info['speed']*1.852,gps_info['altitude'],gps_info['course'],  gps_info['dist']*1000  ) ,end='\r')
             #here-  some distance was made from the last call
+            #MAP
+            # MAYBE NO MARKER NEEDED
+            #mam= CircleMarker( (gps_info['XCoor'],gps_info['YCoor']),'red', 1)
+            #tkinter_loop.m1.add_marker(mam)
+            tkinter_loop.tk_image=tkinter_loop.m1.render(zoom=tkinter_loop.tk_zoomset[ tkinter_loop.tk_zoom] , center=(gps_info['XCoor'] , gps_info['YCoor'] )   )
+
         else:
             print( "{} ".format(gps_info['fix']) , end="\r")
 

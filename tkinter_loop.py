@@ -19,11 +19,15 @@ tk_n=0
 tk_command=None
 tk_registered=False
 
+##############################################
+# monitor size
+##############################################
 def monitor_size():
     CMD="xrandr  | grep \* | cut -d' ' -f4"
     p=subprocess.check_output(CMD , shell=True)
     wihe=p.decode('utf8').rstrip().split('x')
     wihe=list(map(int,wihe))
+    print("i... monitor size ",wihe)
     return wihe
 
 
@@ -70,7 +74,7 @@ def tk_loop():
     global zoom
     global tk_root,tk_label,tk_frame,tk_n,tk_image,tk_command
     global tk_zmq_socket
-    print("loop",tk_n,tk_command)
+    #print("loop",tk_n,tk_command)
     tk_n=tk_n+1
     #if gps_info['fix']=='+' and gps_info['dist']>0.:
     if not tk_image is None:
@@ -117,7 +121,7 @@ def tk_init():
     tk_label = tkinter.Label( tk_root )
     ######label.bind("<KeyPress>", keydown)
     tk_label.pack()
-    tk_frame = tkinter.Frame(tk_root, width=100, height=100)
+    tk_frame = tkinter.Frame(tk_root, width=IMX, height=IMY)
     tk_frame.bind("<Key>", keydown)
     tk_frame.bind("<Button-1>", callback)
     tk_frame.pack()
@@ -133,10 +137,10 @@ def tk_init():
 ####
 #
 #############################################################
-print("============")
+#print("============")
 IMX,IMY=320,240
 #IMX,IMY=640,480
-#IMX,IMY=monitor_size()
+IMX,IMY=monitor_size()
 resizeF=2
 IMX=int(IMX/resizeF)-20
 IMY=int(IMY/resizeF)-20
