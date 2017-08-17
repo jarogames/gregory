@@ -37,12 +37,12 @@ def producer_onestep(zmq_socket,register=False,silent=False,regs=0):
         regs=1
 
     ###if not silent:print('KEY=',key)
-    if not register:
+    if regs==1 and register:
         if key==b'r':key=b'r'
     else:
         if key==b'r':key=b'register'
 
-    if key==b' ':key=b'SPC'
+    if key==b' ':key=b' '
     if key==b'\n':key=b'ENT'
     if key==b'\x7f':key=b'BKSP'
     if key==b'\x1b[3~':key=b'DEL'

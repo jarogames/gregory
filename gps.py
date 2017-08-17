@@ -170,28 +170,58 @@ if __name__ == "__main__":
     while 1==1:
         # STATUS LINE HERE
         if gps_info['fix']=='+' and gps_info['dist']>0.:
+            if tkinter_loop.tk_zoom==None: tkinter_loop.tk_zoom=2
+
             print(' '+gps_info['fix']+gps_info['timex']+
-              " ({:6.4f},{:6.4f}){:6.1f} km/h {:6.1f} m H{:03.0f}  {:.1f}        ".format( gps_info['XCoor'],gps_info['YCoor'],gps_info['speed']*1.852,gps_info['altitude'],gps_info['course'],  gps_info['dist']*1000  ) ,end='\r')
+              " ({:6.4f},{:6.4f}){:6.1f} km/h {:6.1f} m H{:03.0f}  {:.1f}        ".format( gps_info['XCoor'],gps_info['YCoor'],gps_info['speed']*1.852,gps_info['altitude'],gps_info['course'],  gps_info['disttot']  ) ,end='\r')
             #here-  some distance was made from the last call
             #MAP
             # MAYBE NO MARKER NEEDED
-            #mam= CircleMarker( (gps_info['XCoor'],gps_info['YCoor']),'red', 1)
-            #tkinter_loop.m1.add_marker(mam)
-            tkinter_loop.tk_image=tkinter_loop.m1.render(zoom=tkinter_loop.tk_zoomset[ tkinter_loop.tk_zoom] , center=(gps_info['XCoor'] , gps_info['YCoor'] )   )
+            mam= CircleMarker( (gps_info['XCoor'],gps_info['YCoor']),'red', 6)
+            tkinter_loop.m1.add_marker(mam)
 
         else:
             print( "{} ".format(gps_info['fix']) , end="\r")
-
+            if tkinter_loop.tk_zoom==None: tkinter_loop.tk_zoom=0
+            
+        #=== Image will come everytime
+        tkinter_loop.tk_image=tkinter_loop.m1.render(zoom=tkinter_loop.tk_zoomset[ tkinter_loop.tk_zoom] , center=(gps_info['XCoor'] , gps_info['YCoor'] )   )
 
         #logger.info("entering parser") # wait 100ms fin c.p.step
         cmd=command_parser_step(poller,receiver,collecter_data,x)
         if len(cmd)>0:print(">",cmd)
-        if cmd!="":
+        #if cmd!="":
+        #RESET dist
+        if cmd=="r":
+            gps_info["disttot"]=0.
+        # ZOOM
+        if cmd=="z":
+            tkinter_loop.tk_zoom= tkinter_loop.tk_zoom-1
+            if  tkinter_loop.tk_zoom<0:
+                tkinter_loop.tk_zoom= len(tkinter_loop.tk_zoomset)-1
+            print("Zoom=",tkinter_loop.tk_zoom)
+
+        # ZOOM
+        if cmd=="Z":
+            tkinter_loop.tk_zoom= tkinter_loop.tk_zoom+1
+            if  tkinter_loop.tk_zoom>len(tkinter_loop.tk_zoomset):
+                tkinter_loop.tk_zoom=0
+            print("Zoom=",tkinter_loop.tk_zoom)
+
+        # SPACE - switch two loweest res
+        if cmd==" ":
+            print(tkinter_loop.tk_zoom)
+            if tkinter_loop.tk_zoom==len(tkinter_loop.tk_zoomset)-1:
+                tkinter_loop.tk_zoom= len(tkinter_loop.tk_zoomset)-2
+            else:
+                tkinter_loop.tk_zoom= len(tkinter_loop.tk_zoomset)-1
+                
+        if cmd=="q" or cmd=="quit":
             s_gps.send_string(cmd)
             s_key.send_string(cmd)
             s_tki.send_string(cmd) # but it is blocking
             tkinter_loop.tk_command=cmd
-        if cmd=="q" or cmd=="quit": break
+            break
         x=x+1
     #t_gps_poll.exit()
     #t_keypress.exit()

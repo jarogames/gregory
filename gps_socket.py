@@ -54,7 +54,9 @@ gps_info={'fix':'0', 'course':0, 'speed':0,'altitude':0,
           'timex':'00:00:00 UTC',
           'XCoor':0,'YCoor':0,
           'LX':0,'LY':0,
-          'dist':0.0}
+          'dist':0.0,
+          'disttot':0.0
+}
 #fix=None
 #course=0#
 #speed=0
@@ -266,14 +268,18 @@ def translate_gps_line():
     DELTA=datetime.datetime.now()-STARTTIME
     DELTA=str(DELTA)[:-7]
     #==
-    gps_info['dist']=get_dist_prec(gps_info['XCoor'],
+    if gps_info['fix']=="+":
+        gps_info['dist']=get_dist_prec(gps_info['XCoor'],
                                    gps_info['YCoor'],
                                    gps_info['LX'],
                                    gps_info['LY'] )
-    if gps_info['dist']!=0.0:
-        #print( "{:.5f}".format( 1000*gps_info['dist'])  )
-        gps_info['LX']=gps_info['XCoor']
-        gps_info['LY']=gps_info['YCoor']
+        
+        if gps_info['dist']!=0.0:
+            if gps_info['LX']!=0 and gps_info['LY']!=0:
+                gps_info['disttot']=gps_info['disttot']+gps_info['dist']
+            #print( "{:.5f}".format( 1000*gps_info['dist'])  )
+            gps_info['LX']=gps_info['XCoor']
+            gps_info['LY']=gps_info['YCoor']
 #    try:
         #print("======= print all")
         # print(' '+gps_info['fix']+gps_info['timex']+

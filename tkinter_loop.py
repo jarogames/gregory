@@ -13,7 +13,7 @@ tk_root=None
 tk_label=None
 tk_frame=None
 tk_image=None #this will be the IMAGE
-tk_zoom=0
+tk_zoom=None
 tk_zoomset=[]
 tk_n=0
 tk_command=None
@@ -37,9 +37,9 @@ def monitor_size():
 def keydown(e):
     global tk_registered
     global tk_command
-    print('keypressed')
+    print('tkinter keypress')
     ###########
-    tk_command=None
+    tk_command=e.char
     if len(e.char)==0: return 
     print('     keypress /'+e.char+'/')
     if e.char==' ':
@@ -95,6 +95,7 @@ def tk_loop():
         tk_root.quit()
         print('x... tk_root quitted')
         return
+    tk_command=None
     tk_root.update_idletasks()
     tk_root.after( 2, tk_loop )
     time.sleep( 0.35 )  # sleep here to leave it displayed
@@ -147,11 +148,12 @@ IMY=int(IMY/resizeF)-20
 m1 = StaticMap( IMX,IMY, url_template='http://localhost:8900/{z}/{x}/{y}.png')
 tk_zoomset=[5,8,12,15]   # zoom  0,1,2
 ##### 0 1 2 - it parses allowed zoomset
-tk_zoom=2
+tk_zoom=None
 
 if __name__ == "__main__":
     print("i... i am in main")
-    
+    if tkinter_loop.tk_zoom==None: tkinter_loop.tk_zoom=0
+ 
     ## this i want to be elsewhere....
     mam= CircleMarker( (gps_info['XCoor'],gps_info['YCoor']),'red', 1)
     m1.add_marker(mam)
