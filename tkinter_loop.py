@@ -86,9 +86,9 @@ def tk_loop():
         key1=tk_command
         consumer_id=7 # tkinter will have 7
         work_message =  { 'client' : consumer_id, 'cmd' : key1}
-        print("i... sendin zmq keypress")
+        #print("i... sendin zmq keypress")
         tk_zmq_socket.send_json(work_message)
-        print("i... keypress sent")
+        #print("i... keypress sent")
 
     if tk_command=='quit' or tk_command=="q":
         print('x... tk_root to quit..........')

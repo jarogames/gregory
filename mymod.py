@@ -122,8 +122,7 @@ def command_parser_step(poller,receiver,collecter_data,x):
                 logger.error('NEW client {} MUST register - not {}'.format(result['client'],result['cmd']) )
                 return ""
 
-        if x%10 == 0:
-            pprint.pprint(collecter_data)
+        #if x%100 == 0:   pprint.pprint(collecter_data)
     return result['cmd']
 
 ###########################################FUNCTIONS###
