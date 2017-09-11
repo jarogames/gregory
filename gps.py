@@ -36,7 +36,7 @@ import tkinter_loop
 from mymod import command_parser_init,command_parser_step
 
 ## From gps_socket (my) global variable should be loaded.
-from gps_socket import translate_gps_line, gps_info
+from gps_socket import translate_gps_line, gps_info, set_gps_info
 
 ## keypressing in terminal - now nonblocking
 import keypress
@@ -44,7 +44,7 @@ import keypress
 from staticmap import StaticMap, CircleMarker, Line
 
 
-from gps_image import make_image, load_track_log
+from gps_image import make_image, load_track_log, load_target_log, load_poi_log
 #################################
 # procedures for threading:
 #################################
@@ -140,6 +140,10 @@ def tkinter_poll():
 #
 #################################
 if __name__ == "__main__":
+    #init_gps_info()
+    load_poi_log()
+    load_target_log()
+    load_track_log()
 
     # Prepare our context and sockets
     context = zmq.Context.instance()
@@ -168,13 +172,12 @@ if __name__ == "__main__":
     #######=======
     poller,receiver,collecter_data=command_parser_init()
     x=0
-
-    load_track_log()
     #########################################################
     ######### here all commands will pass in an infinite loop
     #
     #
     ###########################
+
     while 1==1:
         # STATUS LINE HERE
         if gps_info['fix']=='+' and gps_info['dist']>0.:
@@ -182,20 +185,23 @@ if __name__ == "__main__":
 
             gpsline="{} {:6.4f} {:6.4f} {:6.1f} km/h {:6.1f} m H{:03.0f}  {:.1f} ".format( gps_info['timex'], gps_info['XCoor'],gps_info['YCoor'],gps_info['speed']*1.852,gps_info['altitude'],gps_info['course'],  gps_info['disttot']  )
             print(' '+gps_info['fix']+" "+gpsline ,  end='\r')
+            
             with open("gps_track.log","a") as f:
                 f.write( gpsline+"\n")
             #here-  some distance was made from the last call
             mam=CircleMarker( (gps_info['XCoor'],gps_info['YCoor']),'red', 6)
             tkinter_loop.m1.add_marker(mam)
 
-            tkinter_loop.tk_image=tkinter_loop.m1.render(zoom=5,
-               center=(14.460648666666668, 50.170264333333336)  )
-            #make_image()
+            #tkinter_loop.tk_image=tkinter_loop.m1.render(zoom=5,
+            #   center=(14.460648666666668, 50.170264333333336)  )
+            make_image()
 
         else:
             #print( "{} ".format(gps_info['fix']) , end="\r")
             if tkinter_loop.tk_zoom==None: tkinter_loop.tk_zoom=0
             #tkinter_loop.tk_image=tkinter_loop.m1.render(zoom=tkinter_loop.tk_zoomset[ tkinter_loop.tk_zoom] , center=(gps_info['XCoor'] , gps_info['YCoor'] )   )
+
+            make_image()
 
             #time.sleep(0.2)
             #print( gps_info['fix'])  # many many 0 0 0 00 0 0 

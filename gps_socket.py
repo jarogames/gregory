@@ -50,13 +50,20 @@ DEBUG=False
 sock=None    #####  
 
 # global variables:
+#gps_info={}
 gps_info={'fix':'0', 'course':0, 'speed':0,'altitude':0,
           'timex':'00:00:00 UTC',
+          'utc':0,
           'XCoor':0,'YCoor':0,
           'LX':0,'LY':0,
           'dist':0.0,
-          'disttot':0.0
+          'disttot':0.0,
+          'utcdelay':-1.0
 }
+
+def set_gps_info( disttot):
+    gps_info['disttot']=disttot
+    
 #fix=None
 #course=0#
 #speed=0
@@ -99,6 +106,21 @@ def get_GPRMC(lin):
         except:
             #print('e... course    ')
             gps_info['course']=0
+        try:
+            #print("DATE=",lin.split(',')[1])
+            #print("DATE=",lin.split(',')[9])
+            d=(lin.split(',')[9][0:2])
+            m=(lin.split(',')[9][2:4])
+            y=int(lin.split(',')[9][4:6])+2000
+            hh=lin.split(',')[1][0:2]
+            mm=lin.split(',')[1][2:4]
+            ss=lin.split(',')[1][4:6]
+            dmy="{}.{}.{} {}:{}:{}".format(d,m,y,hh,mm,ss)
+            #print("converting..................../",dmy,"/" )
+            gps_info['utc']=int(datetime.datetime.strptime(dmy,"%d.%m.%Y %H:%M:%S").strftime("%s"))
+            #print("=======gps_info utc========", gps_info['utc']+0.01 )
+        except:
+            gps_info['utc']=0
 
     #-------- fix--------------------
 def get_GPGSA(lin):
@@ -116,6 +138,14 @@ def get_GPGSA(lin):
     #else:
         #return None
     #----------------------------
+
+#========== GPZDA =============
+def get_GPZDA(lin):
+    global DEBUG
+    global fix
+    #if (lin.find('GPZDA')>0):
+    #    print( "===",lin.split(',')[2] )
+    #    gps_info['utc']='0'  
 
 #====== COORDINATES ============    
 def get_GPGGA(lin ):
@@ -148,6 +178,7 @@ def get_GPGGA(lin ):
             YCoor=0
         try:
             gps_info['timex']=tim[0:2]+':'+tim[2:4]+':'+tim[4:6]+' UTC'
+            ####gps_info['utc']=
         except:
             print("...error in timex")
             gps_info['timex']="00:00:00 UTC"
@@ -269,6 +300,7 @@ def translate_gps_line():
     DELTA=str(DELTA)[:-7]
     #==
     if gps_info['fix']=="+":
+        #print("========== ",gps_info['disttot'] )
         gps_info['dist']=get_dist_prec(gps_info['XCoor'],
                                    gps_info['YCoor'],
                                    gps_info['LX'],

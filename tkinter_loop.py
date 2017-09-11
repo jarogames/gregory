@@ -25,7 +25,8 @@ tk_registered=False
 def monitor_size():
     CMD="xrandr  | grep \* | cut -d' ' -f4"
     p=subprocess.check_output(CMD , shell=True)
-    wihe=p.decode('utf8').rstrip().split('x')
+    print("==========", p)
+    wihe=p.decode('utf8').split()[0].rstrip().split('x')
     wihe=list(map(int,wihe))
     print("i... monitor size ",wihe)
     return wihe
