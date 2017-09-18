@@ -139,6 +139,7 @@ def tkinter_poll():
 #  MAIN
 #
 #################################
+gpsline="--------------"
 if __name__ == "__main__":
     #init_gps_info()
     load_poi_log()
@@ -211,18 +212,70 @@ if __name__ == "__main__":
         cmd=command_parser_step(poller,receiver,collecter_data,x)
         if len(cmd)>0:print(">",cmd)
         #if cmd!="":
+        #########################################
         #RESET dist
         if cmd=="r":
             gps_info["disttot"]=0.
+
+        if cmd=="LEFT":
+            print("...LEFT")
+            if tkinter_loop.tk_zoom==0:gps_info['XOffs']=gps_info['XOffs']-10
+            if tkinter_loop.tk_zoom==1:gps_info['XOffs']=gps_info['XOffs']-1
+            if tkinter_loop.tk_zoom==2:gps_info['XOffs']=gps_info['XOffs']-0.1
+            if tkinter_loop.tk_zoom==3:gps_info['XOffs']=gps_info['XOffs']-0.01
+        if cmd=="RIGHT":
+            print("...RIGHT")
+            if tkinter_loop.tk_zoom==0:gps_info['XOffs']=gps_info['XOffs']+10
+            if tkinter_loop.tk_zoom==1:gps_info['XOffs']=gps_info['XOffs']+1
+            if tkinter_loop.tk_zoom==2:gps_info['XOffs']=gps_info['XOffs']+0.1
+            if tkinter_loop.tk_zoom==3:gps_info['XOffs']=gps_info['XOffs']+0.01
+        if cmd=="UP":
+            print("...UP")
+            if tkinter_loop.tk_zoom==0:gps_info['YOffs']=gps_info['YOffs']+5
+            if tkinter_loop.tk_zoom==1:gps_info['YOffs']=gps_info['YOffs']+0.5
+            if tkinter_loop.tk_zoom==2:gps_info['YOffs']=gps_info['YOffs']+0.05
+            if tkinter_loop.tk_zoom==3:gps_info['YOffs']=gps_info['YOffs']+0.005
+        if cmd=="DOWN":
+            print("...DOWN")
+            if tkinter_loop.tk_zoom==0:gps_info['YOffs']=gps_info['YOffs']-5
+            if tkinter_loop.tk_zoom==1:gps_info['YOffs']=gps_info['YOffs']-0.5
+            if tkinter_loop.tk_zoom==2:gps_info['YOffs']=gps_info['YOffs']-0.05
+            if tkinter_loop.tk_zoom==3:gps_info['YOffs']=gps_info['YOffs']-0.005
+            
+        #F  factor 2 or 1
+        if cmd=="f":
+            if tkinter_loop.resizeF==1:
+                tkinter_loop.recalc_screen_size(2)
+                tkinter_loop.set_resizeF(2)
+                print("i... resizeF == 2")
+            else:
+                tkinter_loop.recalc_screen_size(1)
+                tkinter_loop.set_resizeF(1)
+                print("i... resizeF == 1")
+
+        # enter POI
+        if cmd=="ENT" or cmd=="o" or cmd=="w" or cmd=="y":
+            print("enter / o / w /y color POIs")
+            mcolor=" black "
+            if cmd=="o":mcolor="orange"
+            if cmd=="y":mcolor="yellow"
+            if cmd=="w":mcolor="white"
+            with open("gps_POI.log","a") as f:
+                gpsline=gpsline+" "+mcolor+" \n"
+                print("-->",gpsline)
+                f.write( gpsline)
+            load_poi_log()
+
+            
         # ZOOM
-        if cmd=="z":
+        if cmd=="z" or cmd=="x" or cmd=="c" or cmd=="v":
             tkinter_loop.tk_zoom= tkinter_loop.tk_zoom-1
             if  tkinter_loop.tk_zoom<0:
                 tkinter_loop.tk_zoom= len(tkinter_loop.tk_zoomset)-1
             print("Zoom=",tkinter_loop.tk_zoom)
 
         # ZOOM
-        if cmd=="Z":
+        if cmd=="Z" or cmd=="b" or cmd=="n" or cmd=="m":
             tkinter_loop.tk_zoom= tkinter_loop.tk_zoom+1
             if  tkinter_loop.tk_zoom>len(tkinter_loop.tk_zoomset):
                 tkinter_loop.tk_zoom=0

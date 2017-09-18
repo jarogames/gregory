@@ -34,6 +34,7 @@ def takespread(sequence, num):
 
 def load_poi_log():
     global POI_LIST
+    POI_LIST=[]
     print("LOADING POI ")
     lines=[]
     try:
@@ -43,11 +44,14 @@ def load_poi_log():
         print("NO POI TACK")
     print( "\nNumber of lines in POI:", len(lines) )
     for li in lines:
-        x,y=float(li.split()[2].strip()),float(li.split()[3].strip())
-        POI_LIST.append(  (x,y)  )
+        if len(li.split())>5:
+            x,y,word=float(li.split()[2].strip()),float(li.split()[3].strip()),li.split()[-1]
+            POI_LIST.append(  (x,y,word)  )
     #print( POI_LIST )
 
 
+
+    
 def load_target_log():
     global TARGET_LIST
     print("LOADING TARGET TRACK")
@@ -202,7 +206,7 @@ def make_image():
     #   i will not check 1 img/sec
     #  BUT tricky - i check a delay a skip all delayed
     ##
-    if (start-LAST_IMAGE).microseconds<888000:
+    if (start-LAST_IMAGE).microseconds<950000:
         return
     #############################
     # if pc clock is delayed ret immediat
@@ -215,6 +219,10 @@ def make_image():
             gps_info['utcdelay']=realdelay
         return
     #==== REDUCE NUMBER OF POINTS =====
+    print("{:4.0f} ms\n".format((start-LAST_IMAGE).microseconds/1000) )
+
+
+    
     ltr=len(TRACK_LIST)
     ltg=len(TARGET_LIST)
     #print("===================== TRACK_LIST  HAS", ltr)
@@ -243,34 +251,50 @@ def make_image():
     tkinter_loop.m1.markers=[]
 
     #========  IS TARGET = NAVIGATION
-    for coor in POI_LIST:
-        mam=CircleMarker( coor, 'yellow', 7)
-        #print( coor)
-        tkinter_loop.m1.add_marker(mam)
-    #========  IS TARGET = NAVIGATION
     for coor in TARGET_LIST:
         mam=CircleMarker( coor, 'blue', 3)
         #print( coor)
         tkinter_loop.m1.add_marker(mam)
     #========  IS OLD TRACK
     for coor in TRACK_LIST:
-        mam=CircleMarker( coor, 'red', 3)
+        mam=CircleMarker( coor, 'orange', 3)
         #print( coor )
         tkinter_loop.m1.add_marker(mam)
+
+        #========  IS POI
+    for coor3 in POI_LIST:
+        coor=( coor3[0],coor3[1])
+        if coor3[2]=='yellow' or  coor3[2]=='white' or coor3[2]=='orange' or coor3[2]=='red' or coor3[2]=='green' or coor3[2]=='blue'  or coor3[2]=='magenta'  or coor3[2]=='grey'  or coor3[2]=='lightgray'  :
+            incol=coor3[2]
+        else:
+            incol='black'
+        mam=CircleMarker( coor, 'black', 7)
+        tkinter_loop.m1.add_marker(mam)
+        mam=CircleMarker( coor, incol , 5)
+        tkinter_loop.m1.add_marker(mam)
+        #print( coor)
+
+
+
     #======== RED IS ACTUAL GAME
-    mam=CircleMarker( (gps_info['XCoor'],gps_info['YCoor']),'orange', 7)
+    mam=CircleMarker( (gps_info['XCoor'],gps_info['YCoor']),'red', 7)
     tkinter_loop.m1.add_marker(mam)
-    #======== RENDER============
+
+
+
+        
+    #======== RENDER============#####################
     failrender=True
     while failrender:
         try:
-            tkinter_loop.tk_image=tkinter_loop.m1.render(zoom=tkinter_loop.tk_zoomset[ tkinter_loop.tk_zoom] , center=(gps_info['XCoor'] , gps_info['YCoor'] )   )
+            tkinter_loop.tk_image=tkinter_loop.m1.render(zoom=tkinter_loop.tk_zoomset[ tkinter_loop.tk_zoom],center=(gps_info['XCoor']+gps_info['XOffs'],gps_info['YCoor']+gps_info['YOffs'] )   )
             failrender=False
         except:
             if tkinter_loop.tk_zoom>0: tkinter_loop.tk_zoom=tkinter_loop.tk_zoom-1
 
 
-            
+
+    ##### PRINT  LABELS TO CORNERS #####        
     ##### DISTTOT
     gps_text( tkinter_loop.tk_image, 90 ,"{:5.1f}".format(gps_info['disttot'])+' km', fg='white',bg='black',radius=1.0)
     ##### SPEED
@@ -298,6 +322,6 @@ def make_image():
     seconds=delta.seconds + (float(1) * delta.microseconds/1e6)  
 
     #============DEBUG
-    #print("\nimg:", seconds, "marks=",ltr ,end="\n")
+    print("\nimg:", seconds, "marks=",ltr ,end="\n")
 
     

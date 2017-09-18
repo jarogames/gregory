@@ -35,6 +35,36 @@ def monitor_size():
 #######################################
 #  KEYPRESS
 #######################################
+
+def leftKey(event):
+    global tk_registered
+    global tk_command
+    print( "Left key pressed")
+    key1="LEFT"
+    tk_command="LEFT"
+        
+def rightKey(event):
+    global tk_registered
+    global tk_command
+    print( "Right key pressed")
+    key1="RIGHT"
+    tk_command="RIGHT"
+
+def upKey(event):
+    global tk_registered
+    global tk_command
+    print( "up key pressed")
+    key1="UP"
+    tk_command="UP"
+        
+def downKey(event):
+    global tk_registered
+    global tk_command
+    print( "Down key pressed")
+    key1="DOWN"
+    tk_command="DOWN"
+
+
 def keydown(e):
     global tk_registered
     global tk_command
@@ -42,10 +72,17 @@ def keydown(e):
     ###########
     tk_command=e.char
     if len(e.char)==0: return 
-    print('     keypress /'+e.char+'/')
+    print('     keypress /'+e.char+'/', len(e.char) )
     if e.char==' ':
         key1="SPACE"
         print(key1)
+    if e.char=='\n':
+        key1="ENT"
+        print('backslash n')
+    if e.char=='\r':
+        key1="ENT"
+        print('backslash r')
+        tk_command="ENT"
     if e.char in ['q']:
         print('should be QUITTING...')
         tk_command='quit'
@@ -61,7 +98,8 @@ def keydown(e):
 ##################################
 def callback(event):
     global m1
-    frame.focus_set()
+    global tk_frame
+    tk_frame.focus_set()
     print( "clicked at", event.x, event.y,"  ")
     print( m1._x_to_lon(m1._px_to_x(), zoom ) )
 
@@ -126,6 +164,10 @@ def tk_init():
     tk_frame = tkinter.Frame(tk_root, width=IMX, height=IMY)
     tk_frame.bind("<Key>", keydown)
     tk_frame.bind("<Button-1>", callback)
+    tk_frame.bind('<Left>', leftKey)
+    tk_frame.bind('<Right>', rightKey)
+    tk_frame.bind('<Down>', downKey)
+    tk_frame.bind('<Up>', upKey)
     tk_frame.pack()
     tk_frame.focus_set()
     img = None
@@ -134,6 +176,8 @@ def tk_init():
     tk_loop()
     #tk_root.mainloop()
 
+
+    
 #############################################################
 #
 ####
@@ -142,10 +186,21 @@ def tk_init():
 #print("============")
 IMX,IMY=320,240
 #IMX,IMY=640,480
-IMX,IMY=monitor_size()
+IMX_ORI,IMY_ORI=monitor_size()
 resizeF=2
-IMX=int(IMX/resizeF)-20
-IMY=int(IMY/resizeF)-20
+def set_resizeF(fac):
+    global resizeF
+    resizeF=fac
+set_resizeF(2)
+
+def recalc_screen_size( resizeF1):
+    global IMX,IMY,IMX_ORI,IMY_ORI
+
+    IMX=int(IMX_ORI/resizeF1)-20
+    IMY=int(IMY_ORI/resizeF1)-20
+    print()
+recalc_screen_size(2)
+
 m1 = StaticMap( IMX,IMY, url_template='http://localhost:8900/{z}/{x}/{y}.png')
 tk_zoomset=[5,8,12,15]   # zoom  0,1,2
 ##### 0 1 2 - it parses allowed zoomset
