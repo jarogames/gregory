@@ -113,10 +113,12 @@ def tk_loop():
     global zoom
     global tk_root,tk_label,tk_frame,tk_n,tk_image,tk_command
     global tk_zmq_socket
+    global resizeF,IMX,IMY
     #print("loop",tk_n,tk_command)
     tk_n=tk_n+1
     #if gps_info['fix']=='+' and gps_info['dist']>0.:
     if not tk_image is None:
+        print("resize:",resizeF,IMX,IMY)
         image=tk_image.resize( (int(IMX* resizeF) , int(IMY*resizeF) ) )
         tkimg = ImageTk.PhotoImage(image)
         tk_label.config(image=tkimg)
@@ -187,21 +189,23 @@ def tk_init():
 IMX,IMY=320,240
 #IMX,IMY=640,480
 IMX_ORI,IMY_ORI=monitor_size()
-resizeF=2
-def set_resizeF(fac):
-    global resizeF
-    resizeF=fac
-set_resizeF(2)
+resizeF=1
+
+#def set_resizeF(fac):
+#    global resizeF
+#    resizeF=fac
+###set_resizeF(2)
 
 def recalc_screen_size( resizeF1):
-    global IMX,IMY,IMX_ORI,IMY_ORI
-
+    global IMX,IMY,IMX_ORI,IMY_ORI, resizeF
+    global m1
     IMX=int(IMX_ORI/resizeF1)-20
     IMY=int(IMY_ORI/resizeF1)-20
-    print()
+    resizeF=resizeF1
+    m1 = StaticMap( IMX,IMY, url_template='http://localhost:8900/{z}/{x}/{y}.png')
+    #print()
 recalc_screen_size(2)
 
-m1 = StaticMap( IMX,IMY, url_template='http://localhost:8900/{z}/{x}/{y}.png')
 tk_zoomset=[5,8,12,15]   # zoom  0,1,2
 ##### 0 1 2 - it parses allowed zoomset
 tk_zoom=None

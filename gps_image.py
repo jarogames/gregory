@@ -24,10 +24,44 @@ TRACK_LIST=[]
 TARGET_LIST=[]
 POI_LIST=[]
 
+
+delta_img_draw=0.0 # time to draw the map
+gps_start_time=0.0
 DEBUG=False
 
+
 def takespread(sequence, num):
+    '''
+    just select every 2nd point - in generat it could be more complex
+    '''
     return sequence[0::2]
+
+
+# - this is or formating timedelta
+from string import Template
+
+class DeltaTemplate(Template):
+    delimiter = "%"
+
+def strfdelta(tdelta, fmt):
+    d = {"D": tdelta.days}
+    hours, rem = divmod(tdelta.seconds, 3600)
+    minutes, seconds = divmod(rem, 60)
+    d["H"] = '{:02d}'.format(hours)
+    d["M"] = '{:02d}'.format(minutes)
+    d["S"] = '{:02d}'.format(seconds)
+    t = DeltaTemplate(fmt)
+    return t.substitute(**d)
+
+#def strfdelta(tdelta, fmt):
+#    d = {"D": tdelta.days}
+#    d["H"], rem = divmod(tdelta.seconds, 3600)
+#    d["M"], d["S"] = divmod(rem, 60)
+#    t = DeltaTemplate(fmt)
+#    return t.substitute(**d)
+
+
+
 
 
 
@@ -90,7 +124,8 @@ def load_track_log():
     #gps_socket.gps_info['distttot']=444.444
     #gps_info['distttot']=totdist
     print( "============== PRESET TOT DIST ", gps_info['disttot'] )
-
+    gps_info['XCoor']=TRACK_LIST[-1][0]
+    gps_info['YCoor']=TRACK_LIST[-1][1]
 
 
 
@@ -194,11 +229,16 @@ def make_image():
     global TRACK_LIST
     global TARGET_LIST
     global DEBUG
+    global delta_img_draw
+    global gps_start_time
     #MAP
     global LAST_IMAGE
     utc=int( datetime.datetime.utcnow().strftime("%s") )
     start=datetime.datetime.now()
+    if gps_start_time==0:
+        gps_start_time=start
     if LAST_IMAGE==0:
+        print("...  First image - setting the LAST_IMAGE time")
         LAST_IMAGE=start
         return
     ########################################
@@ -206,28 +246,41 @@ def make_image():
     #   i will not check 1 img/sec
     #  BUT tricky - i check a delay a skip all delayed
     ##
-    if (start-LAST_IMAGE).microseconds<950000:
+    delta_ss=(start-LAST_IMAGE).seconds+(start-LAST_IMAGE).microseconds/1e+6
+    #print("...", delta_ss)
+    if delta_ss<0.95:
+        #DEBUG
+        #print("...  i wait for 0.95 ms - i have ",delta_ss)
         return
-    #############################
-    # if pc clock is delayed ret immediat
-    #
-    #
-    realdelay=utc - gps_info['utc']
-    if realdelay>gps_info['utcdelay']:
-        if gps_info['utcdelay']==-1.0:
-            print("======== CLOCK DELAY SET: ", realdelay)
-            gps_info['utcdelay']=realdelay
-        return
-    #==== REDUCE NUMBER OF POINTS =====
-    print("{:4.0f} ms\n".format((start-LAST_IMAGE).microseconds/1000) )
 
 
     
+    #############################
+    # if pc clock is delayed ret immediat
+    #  now I have ntp related to GPS --------
+    #
+    realdelay=utc - gps_info['utc']
+    if realdelay>0:
+    #if realdelay>gps_info['utcdelay']:
+        #if gps_info['utcdelay']==-1.0:
+        #    print("======== CLOCK DELAY SET: ", realdelay)
+        #    gps_info['utcdelay']=realdelay
+        print("...  --- make_img delayed to gps clock: ", realdelay, 's.', '{:.2f} s. to draw'.format(delta_img_draw))
+        if realdelay>2:print("!... verify /etc/ntp.conf for GPS")
+        return
+   # print("{:4.0f} ms\n".format((start-LAST_IMAGE).microseconds/1000) )
+
+
+
+
+   
+    #==== REDUCE NUMBER OF POINTS =====
+ 
     ltr=len(TRACK_LIST)
     ltg=len(TARGET_LIST)
     #print("===================== TRACK_LIST  HAS", ltr)
     #print("===================== TARGET_LIST HAS", ltg)
-    while ltr>500:
+    while ltr>3000:
         TRACK_LIST=takespread(TRACK_LIST,2 )
         ltr=len(TRACK_LIST)
     while ltg>3000:
@@ -246,6 +299,11 @@ def make_image():
     #      "RT delay=",realdelay)
     # MAYBE NO MARKER NEEDED
     #if gps_info['fix']=='+' and gps_info['dist']>0.:
+
+
+
+
+    
     ######################
     #======== COMPLETELU NEW MARKS ALWAYS
     tkinter_loop.m1.markers=[]
@@ -264,7 +322,17 @@ def make_image():
         #========  IS POI
     for coor3 in POI_LIST:
         coor=( coor3[0],coor3[1])
-        if coor3[2]=='yellow' or  coor3[2]=='white' or coor3[2]=='orange' or coor3[2]=='red' or coor3[2]=='green' or coor3[2]=='blue'  or coor3[2]=='magenta'  or coor3[2]=='grey'  or coor3[2]=='lightgray'  :
+        if coor3[2]=='yellow' or\
+           coor3[2]=='white' or\
+           coor3[2]=='orange' or\
+           coor3[2]=='red' or\
+           coor3[2]=='pink' or\
+           coor3[2]=='green' or\
+           coor3[2]=='lightgreen' or\
+           coor3[2]=='blue'  or\
+           coor3[2]=='magenta'  or\
+           coor3[2]=='grey'  or\
+           coor3[2]=='lightgray':
             incol=coor3[2]
         else:
             incol='black'
@@ -282,7 +350,7 @@ def make_image():
 
 
 
-        
+    #print("... RENDERING")    
     #======== RENDER============#####################
     failrender=True
     while failrender:
@@ -296,18 +364,20 @@ def make_image():
 
     ##### PRINT  LABELS TO CORNERS #####        
     ##### DISTTOT
-    gps_text( tkinter_loop.tk_image, 90 ,"{:5.1f}".format(gps_info['disttot'])+' km', fg='white',bg='black',radius=1.0)
+    #gps_text( tkinter_loop.tk_image, 90 ,"{:5.1f}".format(gps_info['disttot'])+' km', fg='white',bg='black',radius=1.0)
     ##### SPEED
-    gps_text( tkinter_loop.tk_image,'lt',"{:4.1f}".format(gps_info['speed']*1.852)+' km/h')
+    gps_text( tkinter_loop.tk_image,'lt',"{:4.1f} km/h  {} m".format(gps_info['speed']*1.852,gps_info['altitude'] ) )
     ##### HEADING
     if gps_info['fix']=="+":
         gps_text(tkinter_loop.tk_image,'rt',"{:3.0f}".format(gps_info['course']))
     else:
         gps_text(tkinter_loop.tk_image,'rt','NO FIX',fg='red',bg='black')
-    ##### Altitude
-    gps_text(tkinter_loop.tk_image,'lb',"{:5.0f} m".format( gps_info['altitude']))
+    ##### Altitude /// go time + dist
+    gps_text(tkinter_loop.tk_image,'lb',"{}  {:.1f} km".format(strfdelta(start-gps_start_time,"%H:%M:%S"), gps_info['disttot']) )
     ##### TIME
-    gps_text(tkinter_loop.tk_image,'rb',gps_info['timex'])
+    #gps_text(tkinter_loop.tk_image,'rb',gps_info['timex'])
+    
+    gps_text(tkinter_loop.tk_image,'rb', start.strftime("%H:%M:%S"))
 
 
 
@@ -319,9 +389,10 @@ def make_image():
     
     stop=datetime.datetime.now()
     delta=stop-start
-    seconds=delta.seconds + (float(1) * delta.microseconds/1e6)  
-
+    delta_img_draw=delta.seconds + (float(1) * delta.microseconds/1e6)  
+    LAST_IMAGE=stop # reset LAST_IMAGE coiunter to reduce CPU
+    LAST_IMAGE=start # reset LAST_IMAGE coiunter to reduce CPU
     #============DEBUG
-    print("\nimg:", seconds, "marks=",ltr ,end="\n")
+    #print("\nimg:", delta_img_draw, "marks=",ltr ,end="\n")
 
     

@@ -11,7 +11,19 @@ use foxtrotgps ; local server webmap..py and /tmp storage
 OR
 # downloadosmtiles --baseurl=http://localhost:8900 --lat=43:46.1  --lon=8.48:12.7 --zoom=12
 
+==================================== set /etc/ntp.conf to adjust time from GPS:
+ - else in several hours you can get to troubles....
 
+# GPS Serial data reference
+server 127.127.28.0 minpoll 4 maxpoll 4
+fudge 127.127.28.0 time1 0.0 refid GPS
+
+# GPS PPS reference
+server 127.127.28.1 minpoll 4 maxpoll 4 prefer
+fudge 127.127.28.1 refid PPS
+------------------
+and systemctrl restart ntp
+and check with ntpq -p
 '''
 import mymod  
 # .py is appended automatically
@@ -217,6 +229,11 @@ if __name__ == "__main__":
         if cmd=="r":
             gps_info["disttot"]=0.
 
+        #RESET Offsets
+        if cmd=="ENT":
+            gps_info["XOffs"]=0.
+            gps_info["YOffs"]=0.
+
         if cmd=="LEFT":
             print("...LEFT")
             if tkinter_loop.tk_zoom==0:gps_info['XOffs']=gps_info['XOffs']-10
@@ -245,21 +262,24 @@ if __name__ == "__main__":
         #F  factor 2 or 1
         if cmd=="f":
             if tkinter_loop.resizeF==1:
+                #tkinter_loop.resizeF==2
                 tkinter_loop.recalc_screen_size(2)
-                tkinter_loop.set_resizeF(2)
-                print("i... resizeF == 2")
+                #tkinter_loop.set_resizeF(2)
+                print("i... switching resizeF TO 2")
             else:
+                tkinter_loop.resizeF==1
                 tkinter_loop.recalc_screen_size(1)
-                tkinter_loop.set_resizeF(1)
-                print("i... resizeF == 1")
-
+                #tkinter_loop.set_resizeF(1)
+                print("i... switching resizeF TO 1")
+                
         # enter POI
-        if cmd=="ENT" or cmd=="o" or cmd=="w" or cmd=="y":
-            print("enter / o / w /y color POIs")
+        if cmd=="ENT" or cmd=="o" or cmd=="w" or cmd=="y"or cmd=="p":
+            print("enter-black / o-range / w-hite / y-ellow /p-ink color POIs")
             mcolor=" black "
             if cmd=="o":mcolor="orange"
             if cmd=="y":mcolor="yellow"
             if cmd=="w":mcolor="white"
+            if cmd=="p":mcolor="pink"
             with open("gps_POI.log","a") as f:
                 gpsline=gpsline+" "+mcolor+" \n"
                 print("-->",gpsline)
