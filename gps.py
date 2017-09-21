@@ -152,6 +152,7 @@ def tkinter_poll():
 #
 #################################
 gpsline="--------------"
+just_kpressed=False
 if __name__ == "__main__":
     #init_gps_info()
     load_poi_log()
@@ -207,22 +208,27 @@ if __name__ == "__main__":
 
             #tkinter_loop.tk_image=tkinter_loop.m1.render(zoom=5,
             #   center=(14.460648666666668, 50.170264333333336)  )
-            make_image()
+            #make_image()
 
         else:
             #print( "{} ".format(gps_info['fix']) , end="\r")
             if tkinter_loop.tk_zoom==None: tkinter_loop.tk_zoom=0
             #tkinter_loop.tk_image=tkinter_loop.m1.render(zoom=tkinter_loop.tk_zoomset[ tkinter_loop.tk_zoom] , center=(gps_info['XCoor'] , gps_info['YCoor'] )   )
 
-            make_image()
+            #make_image()
 
             #time.sleep(0.2)
             #print( gps_info['fix'])  # many many 0 0 0 00 0 0 
         #=== Image will come everytime
 
+        make_image( just_kpressed )
+        just_keypressed=False
         #logger.info("entering parser") # wait 100ms fin c.p.step
         cmd=command_parser_step(poller,receiver,collecter_data,x)
-        if len(cmd)>0:print(">",cmd)
+        if len(cmd)>0:
+            print(">",cmd)
+            just_keypressed=True
+
         #if cmd!="":
         #########################################
         #RESET dist
@@ -240,6 +246,7 @@ if __name__ == "__main__":
             if tkinter_loop.tk_zoom==1:gps_info['XOffs']=gps_info['XOffs']-1
             if tkinter_loop.tk_zoom==2:gps_info['XOffs']=gps_info['XOffs']-0.1
             if tkinter_loop.tk_zoom==3:gps_info['XOffs']=gps_info['XOffs']-0.01
+
         if cmd=="RIGHT":
             print("...RIGHT")
             if tkinter_loop.tk_zoom==0:gps_info['XOffs']=gps_info['XOffs']+10

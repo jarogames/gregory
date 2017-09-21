@@ -225,7 +225,7 @@ def gps_text(image,pos,text,fg='black',bg='white',radius=1.0):
 #######################################################
 
     
-def make_image():
+def make_image(  fast_response=False ):
     global TRACK_LIST
     global TARGET_LIST
     global DEBUG
@@ -248,7 +248,7 @@ def make_image():
     ##
     delta_ss=(start-LAST_IMAGE).seconds+(start-LAST_IMAGE).microseconds/1e+6
     #print("...", delta_ss)
-    if delta_ss<0.95:
+    if not fast_response and delta_ss<0.95:
         #DEBUG
         #print("...  i wait for 0.95 ms - i have ",delta_ss)
         return
@@ -266,7 +266,7 @@ def make_image():
         #    print("======== CLOCK DELAY SET: ", realdelay)
         #    gps_info['utcdelay']=realdelay
         print("...  --- make_img delayed to gps clock: ", realdelay, 's.', '{:.2f} s. to draw'.format(delta_img_draw))
-        if realdelay>2:print("!... verify /etc/ntp.conf for GPS")
+        if not fast_response and  realdelay>2:print("!... verify /etc/ntp.conf for GPS")
         return
    # print("{:4.0f} ms\n".format((start-LAST_IMAGE).microseconds/1000) )
 
