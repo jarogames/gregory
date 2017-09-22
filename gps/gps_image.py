@@ -260,13 +260,13 @@ def make_image(  fast_response=False ):
     #  now I have ntp related to GPS --------
     #
     realdelay=utc - gps_info['utc']
-    if realdelay>0:
+    if realdelay>0 and realdelay<100000:
     #if realdelay>gps_info['utcdelay']:
         #if gps_info['utcdelay']==-1.0:
         #    print("======== CLOCK DELAY SET: ", realdelay)
         #    gps_info['utcdelay']=realdelay
         print("...  --- make_img delayed to gps clock: ", realdelay, 's.', '{:.2f} s. to draw'.format(delta_img_draw))
-        if not fast_response and  realdelay>2:print("!... verify /etc/ntp.conf for GPS")
+        if not fast_response and  realdelay>2 and realdelay<1000000:print("!... verify /etc/ntp.conf for GPS")
         return
    # print("{:4.0f} ms\n".format((start-LAST_IMAGE).microseconds/1000) )
 
