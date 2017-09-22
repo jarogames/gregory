@@ -1,6 +1,9 @@
 import os
 from setuptools import setup
-
+#
+#   python3 setup.py install --user
+#-------- results in:
+#/home/ojr/.local/lib/python3.5/site-packages/gregory-0.0.1a0-py3.5.egg/mymod
 #############
 # JM now I blindly copy some setup.py
 ############ MANUALS 
