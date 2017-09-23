@@ -115,6 +115,8 @@ def load_target_log():
             lines=f.read().rstrip().split("\n")
     except:
         print("NO TARGET TACK    gps_target.log")
+    if len(lines)<2:
+        return
     print( "\nNumber of lines in TARGET:", len(lines) )
     for li in lines:
         x,y=float(li.split()[2].strip()),float(li.split()[3].strip())
