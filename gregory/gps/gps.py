@@ -267,26 +267,26 @@ if __name__ == "__main__":
 
         if cmd=="LEFT":
             print("...LEFT")
-            if tkinter_loop.tk_zoom==0:gps_info['XOffs']=gps_info['XOffs']-10*2/tkinter_loop.resizeF
-            if tkinter_loop.tk_zoom==1:gps_info['XOffs']=gps_info['XOffs']-1*2/tkinter_loop.resizeF
+            if tkinter_loop.tk_zoom==0:gps_info['XOffs']=gps_info['XOffs']-12*2/tkinter_loop.resizeF
+            if tkinter_loop.tk_zoom==1:gps_info['XOffs']=gps_info['XOffs']-2*2/tkinter_loop.resizeF
             if tkinter_loop.tk_zoom==2:gps_info['XOffs']=gps_info['XOffs']-0.1*2/tkinter_loop.resizeF
             if tkinter_loop.tk_zoom==3:gps_info['XOffs']=gps_info['XOffs']-0.01*2/tkinter_loop.resizeF
 
         if cmd=="RIGHT":
             print("...RIGHT")
-            if tkinter_loop.tk_zoom==0:gps_info['XOffs']=gps_info['XOffs']+10*2/tkinter_loop.resizeF
-            if tkinter_loop.tk_zoom==1:gps_info['XOffs']=gps_info['XOffs']+1*2/tkinter_loop.resizeF
+            if tkinter_loop.tk_zoom==0:gps_info['XOffs']=gps_info['XOffs']+12*2/tkinter_loop.resizeF
+            if tkinter_loop.tk_zoom==1:gps_info['XOffs']=gps_info['XOffs']+2*2/tkinter_loop.resizeF
             if tkinter_loop.tk_zoom==2:gps_info['XOffs']=gps_info['XOffs']+0.1*2/tkinter_loop.resizeF
             if tkinter_loop.tk_zoom==3:gps_info['XOffs']=gps_info['XOffs']+0.01*2/tkinter_loop.resizeF
         if cmd=="UP":
-            print("...UP")
-            if tkinter_loop.tk_zoom==0:gps_info['YOffs']=gps_info['YOffs']+5*2/tkinter_loop.resizeF
+            print("...UP", tkinter_loop.resizeF)
+            if tkinter_loop.tk_zoom==0:gps_info['YOffs']=gps_info['YOffs']+8*2/tkinter_loop.resizeF
             if tkinter_loop.tk_zoom==1:gps_info['YOffs']=gps_info['YOffs']+0.5*2/tkinter_loop.resizeF
             if tkinter_loop.tk_zoom==2:gps_info['YOffs']=gps_info['YOffs']+0.05*2/tkinter_loop.resizeF
             if tkinter_loop.tk_zoom==3:gps_info['YOffs']=gps_info['YOffs']+0.005*2/tkinter_loop.resizeF
         if cmd=="DOWN":
             print("...DOWN")
-            if tkinter_loop.tk_zoom==0:gps_info['YOffs']=gps_info['YOffs']-5*2/tkinter_loop.resizeF
+            if tkinter_loop.tk_zoom==0:gps_info['YOffs']=gps_info['YOffs']-8*2/tkinter_loop.resizeF
             if tkinter_loop.tk_zoom==1:gps_info['YOffs']=gps_info['YOffs']-0.5*2/tkinter_loop.resizeF
             if tkinter_loop.tk_zoom==2:gps_info['YOffs']=gps_info['YOffs']-0.05*2/tkinter_loop.resizeF
             if tkinter_loop.tk_zoom==3:gps_info['YOffs']=gps_info['YOffs']-0.005*2/tkinter_loop.resizeF
