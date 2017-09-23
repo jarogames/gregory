@@ -4,6 +4,7 @@ from setuptools import setup
 #   python3 setup.py install --user
 #-------- results in:
 #/home/ojr/.local/lib/python3.5/site-packages/gregory-0.0.1a0-py3.5.egg/mymod
+# because  gps.py is copied to .local/bin/   u can run gps.py from wherever
 #############
 # JM now I blindly copy some setup.py
 ############ MANUALS 
@@ -18,7 +19,6 @@ from setuptools import setup
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 ##########################################################
-#packages=[]   #  directory with __init__.py
 #modules=[]    #  single files in root dir
 #
 def package_files(directory):
@@ -28,8 +28,10 @@ def package_files(directory):
             paths.append(os.path.join('..', path, filename))
     return paths
 
-extra_files = package_files('mymod/')
-
+#packages=['mymod']   #  directory with __init__.py
+#py_modules=['mymod.mymod']
+extra_files = package_files('mymod/') # i did this with nuphy
+#
 ############   if you want to version git and setup be the same #########
 # git tag -a v$(python setup.py --version) -m '   '
 
@@ -44,7 +46,10 @@ setup(
     license = "GPLv2",
     keywords = "python",
     url = "",
-    packages=['mymod'],
+    #package_dir = {'': 'mymod'},
+    #py_modules=['mymod.mymod'],
+    packages=['mymod','gregory','gregory.gps'],
+    scripts=['bin/gps.py'],
     package_data={'':extra_files},
     long_description=read('README.md'),
     classifiers=[

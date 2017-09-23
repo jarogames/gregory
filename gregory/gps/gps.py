@@ -25,14 +25,14 @@ fudge 127.127.28.1 refid PPS
 and systemctrl restart ntp
 and check with ntpq -p
 '''
-import mymod  
+import mymod.mymod as mymod
 # .py is appended automatically
 
 mymod.argparse_ini()
 mymod.argparse_fin()
 mymod.logging_ini()
 mymod.logging_fin()
-from mymod import logger,logger_head
+from mymod.mymod import logger,logger_head
 
 
 import os
@@ -42,21 +42,22 @@ import time
 import threading
 #####import context
 import zmq
-import tkinter_loop
+print("=============================================")
+import  gregory.gps.tkinter_loop as tkinter_loop
 
 #from mymod import logge0,args,command_parser_init,command_parser_step
-from mymod import command_parser_init,command_parser_step
+from mymod.mymod import command_parser_init,command_parser_step
 
 ## From gps_socket (my) global variable should be loaded.
-from gps_socket import translate_gps_line, gps_info, set_gps_info
+from gregory.gps.gps_socket import translate_gps_line, gps_info, set_gps_info
 
 ## keypressing in terminal - now nonblocking
-import keypress
+import mymod.keypress as keypress
 
 from staticmap import StaticMap, CircleMarker, Line
 
 
-from gps_image import make_image, load_track_log, load_target_log, load_poi_log
+from gregory.gps.gps_image import make_image, load_track_log, load_target_log, load_poi_log
 #################################
 # procedures for threading:
 #################################
@@ -122,7 +123,7 @@ def tkinter_poll():
     logger.info("in     tkinter_poll thread")
     die=False
     try:
-        import tkinter
+        import gps.tkinter as tkinter
     except:
         logger.error("cannot import tkinter")
         die=True

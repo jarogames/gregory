@@ -1,14 +1,14 @@
-import tkinter_loop
+import gregory.gps.tkinter_loop as tkinter_loop
 from staticmap import StaticMap, CircleMarker, Line
 from math import ceil  # reduce # markers
 
-from gps_socket import translate_gps_line, gps_info, set_gps_info
-import gps_socket
+from gregory.gps.gps_socket import translate_gps_line, gps_info, set_gps_info
+import gregory.gps.gps_socket
 import datetime
 
 
 
-from tkinter_loop import IMX,IMY
+from gregory.gps.tkinter_loop import IMX,IMY
 ### PIL for printing on png file
 from PIL import Image
 from PIL import ImageFont
@@ -111,6 +111,7 @@ def load_track_log():
             lines=f.read().rstrip().split("\n")
     except:
         print("NO TRACK TO LOAD")
+        return
     print( "\nNumber of lines in TRACK:", len(lines) )
     totdist=0.0
     for li in lines:

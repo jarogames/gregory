@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 import tkinter
 from PIL import Image, ImageTk
-from gps_socket import gps_info
+from gregory.gps.gps_socket import gps_info
 import staticmap
 import subprocess
 from staticmap import StaticMap, CircleMarker, Line
