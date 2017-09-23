@@ -118,7 +118,7 @@ def tk_loop():
     tk_n=tk_n+1
     #if gps_info['fix']=='+' and gps_info['dist']>0.:
     if not tk_image is None:
-        print("resize:",resizeF,IMX,IMY)
+        #print("resize:",resizeF,IMX,IMY)
         image=tk_image.resize( (int(IMX* resizeF) , int(IMY*resizeF) ) )
         tkimg = ImageTk.PhotoImage(image)
         tk_label.config(image=tkimg)

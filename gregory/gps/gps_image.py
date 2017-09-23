@@ -5,7 +5,7 @@ from math import ceil  # reduce # markers
 from gregory.gps.gps_socket import translate_gps_line, gps_info, set_gps_info
 import gregory.gps.gps_socket
 import datetime
-
+from datetime import timedelta
 
 
 from gregory.gps.tkinter_loop import IMX,IMY
@@ -19,14 +19,24 @@ from PIL import ImageDraw
 #from math import floor,cos,sin
 from math import sqrt,cos,sin,pi,floor,asin,radians
 
+import  gregory.gps.sunposition as sunposition
 LAST_IMAGE=0
 TRACK_LIST=[]
 TARGET_LIST=[]
 POI_LIST=[]
 
+SUNMOONv=False
+def SUNMOON():
+    global SUNMOONv
+    SUNMOONv=not SUNMOONv
+    return SUNMOONv
 
+def reset_gps_start_time():
+    global  gps_start_time
+    gps_start_time=datetime.datetime.now()-timedelta(seconds=0) # this should also go to TRACK FILE
+
+reset_gps_start_time()    
 delta_img_draw=0.0 # time to draw the map
-gps_start_time=0.0
 DEBUG=False
 
 
@@ -102,8 +112,22 @@ def load_target_log():
     #print( TARGET_LIST )
 
 
+#############
+# i will need to decode trak log 00:00:05
+#
+#
+def get_sec(time_str):
+    h, m, s = time_str.split(':')
+    de= int(h) * 3600 + int(m) * 60 + int(s)
+    print(de,'seconds')
+    return de
+
+
+    
 def load_track_log():
     global TRACK_LIST
+    global gps_start_time 
+
     print("LOADING TRACK")
     lines=[]
     try:
@@ -114,8 +138,10 @@ def load_track_log():
         return
     print( "\nNumber of lines in TRACK:", len(lines) )
     totdist=0.0
+    LASTACTTIME="00:00:00"
     for li in lines:
         x,y=float(li.split()[2].strip()),float(li.split()[3].strip())
+        LASTACTTIME=li.split()[0].strip()
         TRACK_LIST.append(  (x,y)  )
         totdist=float( li.split()[9].strip() )
     print( "============== PRESET TOT DIST ",gps_info['disttot'],"->",totdist )
@@ -127,10 +153,70 @@ def load_track_log():
     print( "============== PRESET TOT DIST ", gps_info['disttot'] )
     gps_info['XCoor']=TRACK_LIST[-1][0]
     gps_info['YCoor']=TRACK_LIST[-1][1]
+    gps_info['acttime']=LASTACTTIME
+    print( "======== acttime ",gps_start_time, "tracklist=" , LASTACTTIME, type(gps_start_time) )
+    gps_start_time=gps_start_time - datetime.timedelta( seconds=get_sec( LASTACTTIME ) )
+    
+    #gps_start_time=gps_start_time-datetime.timedelta( seconds=9 )
+    print("=============== PRESET TIME ", gps_start_time )
 
 
 
 
+
+    
+
+#######################
+#
+#    SUN 
+#
+
+def gps_circle( image , pos ,text , tcolor, radius=1.0):
+    global DEBUG
+    #DEBUG=True
+    if DEBUG:print("DEBUG","entered gettext")
+    global IMX
+    global IMY
+    draw = ImageDraw.Draw(image, 'RGBA')
+    font22   = ImageFont.truetype("Ubuntu-B.ttf", 22)
+    font14 = ImageFont.truetype("Ubuntu-B.ttf", 14)
+    font=font22
+    if isinstance(pos, str):
+        font=font22
+    else:
+        font=font14
+    w, h = draw.textsize(text, font)
+    posi=(1,1)
+    if DEBUG: print("DEBUG",'isinstantce str ')
+    #if DEBUG: print("DEBUG",text,'course to ',pos)
+    tox=IMX/2+sin(pos/180*pi)*IMY/2*radius  # IMY here
+    toy=IMY/2-cos(pos/180*pi)*IMY/2*radius
+    # shift the tox toy
+    tox=int(tox-w/2)
+    toy=int(toy-h/2)
+    if (tox+w)>IMX: tox=IMX-w-1
+    if (tox)<0:   tox=1
+    if (toy+h)>=IMY: toy=IMY-h
+    if (toy)<0:   toy=1
+    #        if ( sin(pos)>=0):
+    #            tox=tox-w
+    #        if (cos(pos)>0):
+    #            toy=toy-h
+    #        posi=( int(tox), int(toy) )
+    posi=( tox, toy )
+    posf=( posi[0]+w , posi[1]+h )
+    draw.rectangle( [posi,posf] , (0,0,0,110)  ) #grey rect
+    draw.text( posi, text ,        tcolor  , font=font)
+    #draw.text( posi, "MOON",         (255,115,0,100) , font=font)
+    #draw.text( posi, text,         (0,200,200,100) , font=font)
+    draw.ellipse( (5 +IMX/2-IMY/2, 5, IMX/2+IMY/2-5, IMY-5), fill =None, outline ='black')
+
+
+
+
+    
+
+    
 
 def gps_text(image,pos,text,fg='black',bg='white',radius=1.0):
     global DEBUG
@@ -234,6 +320,7 @@ def make_image(  fast_response=False ):
     global gps_start_time
     #MAP
     global LAST_IMAGE
+    
     utc=int( datetime.datetime.utcnow().strftime("%s") )
     start=datetime.datetime.now()
     if gps_start_time==0:
@@ -292,7 +379,7 @@ def make_image(  fast_response=False ):
 
     
         
-    #========== CONTINUE WITH A TRACK LOG
+    #========== CONTINUE WITH A TRACK LOG === APPEND to LIST
     TRACK_LIST.append(  (gps_info['XCoor'] , gps_info['YCoor'] )  )
 
     
@@ -377,11 +464,36 @@ def make_image(  fast_response=False ):
     gps_text(tkinter_loop.tk_image,'lb',"{}  {:.1f} km".format(strfdelta(start-gps_start_time,"%H:%M:%S"), gps_info['disttot']) )
     ##### TIME
     #gps_text(tkinter_loop.tk_image,'rb',gps_info['timex'])
-    
+
+    # actual time (value of     start )
     gps_text(tkinter_loop.tk_image,'rb', start.strftime("%H:%M:%S"))
 
-
-
+    # here i just define what is written
+    gps_info['acttime']=strfdelta(start-gps_start_time,"%H:%M:%S")
+    
+    if SUNMOONv:
+        LAT=gps_info['YCoor'] #37.6287
+        LON=gps_info['XCoor'] #15.1749
+        now = datetime.datetime.utcnow()
+        res = sunposition.observed_sunpos(now,LAT,LON, gps_info['altitude'])[:2] #discard RA, dec, H
+        print("SUN position:",res)
+        suncol=(255,255,0,255) #yellow
+        # sunrise
+        degmax,degmin=5,-2
+        if res[1]<degmax and res[1]>degmin:
+            green=int(  (res[1]-degmin)/(degmax-degmin)*255)
+            suncol=(255,green,0,255)
+        #sunset
+        degmax,degmin=92,85
+        if res[1]<degmax and res[1]>degmin:
+            green=int(  (degmax-res[1])/(degmax-degmin)*255)
+            suncol=(255,green,0,255)
+            print(suncol)
+        #night    
+        if res[1]<=-2 or res[1]>92: suncol=(25,25,25,255)
+        
+        gps_circle(tkinter_loop.tk_image, res[0] ,"SUN {:.2f}".format(res[1]),
+                   suncol, radius=1.0  )
 
 
 

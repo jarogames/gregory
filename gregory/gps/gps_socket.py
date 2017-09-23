@@ -53,6 +53,7 @@ sock=None    #####
 #gps_info={}
 gps_info={'fix':'0', 'course':0, 'speed':0,'altitude':0,
           'timex':'00:00:00 UTC',
+          'acttime':'00:00:00',
           'utc':0,
           'XCoor':0,'YCoor':0,
           'XOffs':0,'YOffs':0,

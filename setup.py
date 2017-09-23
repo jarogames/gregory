@@ -37,12 +37,12 @@ extra_files = package_files('mymod/') # i did this with nuphy
 
 setup(
     name = "gregory",
-    version = "0.0.1a",
+    version = "0.0.2a",
     zip_safe= False,
     author = "jaromir mrazek",
     author_email = "jaromrax@gmail.com",
     description = ("Gregory will be a system of services in userspace"
-                                   " ....."),
+                                   "SUN is there. arrows respect factor"),
     license = "GPLv2",
     keywords = "python",
     url = "",

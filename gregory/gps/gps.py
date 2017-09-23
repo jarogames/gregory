@@ -57,11 +57,21 @@ import mymod.keypress as keypress
 from staticmap import StaticMap, CircleMarker, Line
 
 
-from gregory.gps.gps_image import make_image, load_track_log, load_target_log, load_poi_log
+from gregory.gps.gps_image import make_image, load_track_log, load_target_log, load_poi_log, SUNMOON, reset_gps_start_time
+
+import datetime # to reset acttime
+
+
 #################################
 # procedures for threading:
 #################################
 def gps_poll():
+    '''
+    this is a bit tricky - 
+    - something in the prog. need to get read frequently
+    like 10/s or more. else image drawing lags much
+    may be this poller 50ms
+    '''
     context =  zmq.Context.instance()
     receiver = context.socket(zmq.PAIR)
     receiver.connect("inproc://gps_poll")
@@ -71,7 +81,7 @@ def gps_poll():
     while (1==1):
         #time.sleep(0.1)
         translate_gps_line()
-        event = poller.poll(100)
+        event = poller.poll(50) # sleep SLEEP 50 ms;when i do 100ms=>lags
         if event:
             string=receiver.recv()
         else:
@@ -198,9 +208,10 @@ if __name__ == "__main__":
         if gps_info['fix']=='+' and gps_info['dist']>0.:
             if tkinter_loop.tk_zoom==None: tkinter_loop.tk_zoom=2
 
-            gpsline="{} {:6.4f} {:6.4f} {:6.1f} km/h {:6.1f} m H{:03.0f}  {:.1f} ".format( gps_info['timex'], gps_info['XCoor'],gps_info['YCoor'],gps_info['speed']*1.852,gps_info['altitude'],gps_info['course'],  gps_info['disttot']  )
+            gpsline="{} ACT {:6.4f} {:6.4f} {:6.1f} km/h {:6.1f} m H{:03.0f}  {:.1f} ".format( gps_info['acttime'], gps_info['XCoor'],gps_info['YCoor'],gps_info['speed']*1.852,gps_info['altitude'],gps_info['course'],  gps_info['disttot']  )
             print(' '+gps_info['fix']+" "+gpsline ,  end='\r')
-            
+
+            # APPEND TO TRACK LOG
             with open("gps_track.log","a") as f:
                 f.write( gpsline+"\n")
             #here-  some distance was made from the last call
@@ -235,6 +246,19 @@ if __name__ == "__main__":
         #RESET dist
         if cmd=="r":
             gps_info["disttot"]=0.
+            #gps_info["acttime"]=0.
+            reset_gps_start_time()
+            A=datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            subprocess.call( ("mv gps_track.log gps_track.log_"+A).split())
+            # RESET TRACK LOG
+            with open("gps_track.log","w") as f:
+                f.write( gpsline+"\n")
+
+
+        #Show sun moon
+        if cmd=="s":
+            print("SUNMOON is", SUNMOON() )
+            
 
         #RESET Offsets
         if cmd=="ENT":
@@ -243,29 +267,29 @@ if __name__ == "__main__":
 
         if cmd=="LEFT":
             print("...LEFT")
-            if tkinter_loop.tk_zoom==0:gps_info['XOffs']=gps_info['XOffs']-10
-            if tkinter_loop.tk_zoom==1:gps_info['XOffs']=gps_info['XOffs']-1
-            if tkinter_loop.tk_zoom==2:gps_info['XOffs']=gps_info['XOffs']-0.1
-            if tkinter_loop.tk_zoom==3:gps_info['XOffs']=gps_info['XOffs']-0.01
+            if tkinter_loop.tk_zoom==0:gps_info['XOffs']=gps_info['XOffs']-10*2/tkinter_loop.resizeF
+            if tkinter_loop.tk_zoom==1:gps_info['XOffs']=gps_info['XOffs']-1*2/tkinter_loop.resizeF
+            if tkinter_loop.tk_zoom==2:gps_info['XOffs']=gps_info['XOffs']-0.1*2/tkinter_loop.resizeF
+            if tkinter_loop.tk_zoom==3:gps_info['XOffs']=gps_info['XOffs']-0.01*2/tkinter_loop.resizeF
 
         if cmd=="RIGHT":
             print("...RIGHT")
-            if tkinter_loop.tk_zoom==0:gps_info['XOffs']=gps_info['XOffs']+10
-            if tkinter_loop.tk_zoom==1:gps_info['XOffs']=gps_info['XOffs']+1
-            if tkinter_loop.tk_zoom==2:gps_info['XOffs']=gps_info['XOffs']+0.1
-            if tkinter_loop.tk_zoom==3:gps_info['XOffs']=gps_info['XOffs']+0.01
+            if tkinter_loop.tk_zoom==0:gps_info['XOffs']=gps_info['XOffs']+10*2/tkinter_loop.resizeF
+            if tkinter_loop.tk_zoom==1:gps_info['XOffs']=gps_info['XOffs']+1*2/tkinter_loop.resizeF
+            if tkinter_loop.tk_zoom==2:gps_info['XOffs']=gps_info['XOffs']+0.1*2/tkinter_loop.resizeF
+            if tkinter_loop.tk_zoom==3:gps_info['XOffs']=gps_info['XOffs']+0.01*2/tkinter_loop.resizeF
         if cmd=="UP":
             print("...UP")
-            if tkinter_loop.tk_zoom==0:gps_info['YOffs']=gps_info['YOffs']+5
-            if tkinter_loop.tk_zoom==1:gps_info['YOffs']=gps_info['YOffs']+0.5
-            if tkinter_loop.tk_zoom==2:gps_info['YOffs']=gps_info['YOffs']+0.05
-            if tkinter_loop.tk_zoom==3:gps_info['YOffs']=gps_info['YOffs']+0.005
+            if tkinter_loop.tk_zoom==0:gps_info['YOffs']=gps_info['YOffs']+5*2/tkinter_loop.resizeF
+            if tkinter_loop.tk_zoom==1:gps_info['YOffs']=gps_info['YOffs']+0.5*2/tkinter_loop.resizeF
+            if tkinter_loop.tk_zoom==2:gps_info['YOffs']=gps_info['YOffs']+0.05*2/tkinter_loop.resizeF
+            if tkinter_loop.tk_zoom==3:gps_info['YOffs']=gps_info['YOffs']+0.005*2/tkinter_loop.resizeF
         if cmd=="DOWN":
             print("...DOWN")
-            if tkinter_loop.tk_zoom==0:gps_info['YOffs']=gps_info['YOffs']-5
-            if tkinter_loop.tk_zoom==1:gps_info['YOffs']=gps_info['YOffs']-0.5
-            if tkinter_loop.tk_zoom==2:gps_info['YOffs']=gps_info['YOffs']-0.05
-            if tkinter_loop.tk_zoom==3:gps_info['YOffs']=gps_info['YOffs']-0.005
+            if tkinter_loop.tk_zoom==0:gps_info['YOffs']=gps_info['YOffs']-5*2/tkinter_loop.resizeF
+            if tkinter_loop.tk_zoom==1:gps_info['YOffs']=gps_info['YOffs']-0.5*2/tkinter_loop.resizeF
+            if tkinter_loop.tk_zoom==2:gps_info['YOffs']=gps_info['YOffs']-0.05*2/tkinter_loop.resizeF
+            if tkinter_loop.tk_zoom==3:gps_info['YOffs']=gps_info['YOffs']-0.005*2/tkinter_loop.resizeF
             
         #F  factor 2 or 1
         if cmd=="f":
