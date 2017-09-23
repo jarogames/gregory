@@ -2,7 +2,7 @@ import gregory.gps.tkinter_loop as tkinter_loop
 from staticmap import StaticMap, CircleMarker, Line
 from math import ceil  # reduce # markers
 
-from gregory.gps.gps_socket import translate_gps_line, gps_info, set_gps_info
+from gregory.gps.gps_socket import translate_gps_line, gps_info, set_gps_info,get_dist_prec
 import gregory.gps.gps_socket
 import datetime
 from datetime import timedelta
@@ -18,6 +18,9 @@ from PIL import ImageDraw
 # to use get_text with radius
 #from math import floor,cos,sin
 from math import sqrt,cos,sin,pi,floor,asin,radians
+
+
+from functools import reduce
 
 import  gregory.gps.sunposition as sunposition
 LAST_IMAGE=0
@@ -95,7 +98,14 @@ def load_poi_log():
 
 
 
+
+
     
+##############################
+#  this is the planned route track:
+#
+#   usually from GraphHopper  with API key
+#
 def load_target_log():
     global TARGET_LIST
     print("LOADING TARGET TRACK")
@@ -109,9 +119,20 @@ def load_target_log():
     for li in lines:
         x,y=float(li.split()[2].strip()),float(li.split()[3].strip())
         TARGET_LIST.append(  (x,y)  )
-    #print( TARGET_LIST )
+    trackdist=0.0
+    for p in range(len(TARGET_LIST)-1):
+        a=TARGET_LIST[p][0]
+        b=TARGET_LIST[p][1]
+        x=TARGET_LIST[p+1][0]
+        y=TARGET_LIST[p+1][1]
+        trackdist=trackdist+ get_dist_prec(a,b,x,y)
+        print(trackdist, a, b )
+    print("TRACK DIST=", trackdist)
+    set_gps_info('trkdist', trackdist )
 
 
+    
+    
 #############
 # i will need to decode trak log 00:00:05
 #
@@ -146,7 +167,7 @@ def load_track_log():
         totdist=float( li.split()[9].strip() )
     print( "============== PRESET TOT DIST ",gps_info['disttot'],"->",totdist )
     #### NW gps_info['disttot']=totdist
-    set_gps_info( totdist )
+    set_gps_info( 'totdist', totdist )
     #gps_socket.gps_info['distttot']=totdist   # i want to continue with
     #gps_socket.gps_info['distttot']=444.444
     #gps_info['distttot']=totdist
@@ -159,7 +180,7 @@ def load_track_log():
     
     #gps_start_time=gps_start_time-datetime.timedelta( seconds=9 )
     print("=============== PRESET TIME ", gps_start_time )
-
+    
 
 
 
@@ -461,7 +482,7 @@ def make_image(  fast_response=False ):
     else:
         gps_text(tkinter_loop.tk_image,'rt','NO FIX',fg='red',bg='black')
     ##### Altitude /// go time + dist
-    gps_text(tkinter_loop.tk_image,'lb',"{}  {:.1f} km".format(strfdelta(start-gps_start_time,"%H:%M:%S"), gps_info['disttot']) )
+    gps_text(tkinter_loop.tk_image,'lb',"{}  {:.1f} km/{:.0f}".format(strfdelta(start-gps_start_time,"%H:%M:%S"), gps_info['disttot'], gps_info['trkdist']) )
     ##### TIME
     #gps_text(tkinter_loop.tk_image,'rb',gps_info['timex'])
 

@@ -1,0 +1,121 @@
+#!/usr/bin/python3
+import subprocess
+import argparse
+#####!/bin/bash
+import os
+#FILE='amien_track.gpx'
+import sys
+
+MYAPI="7c367768-0952-489c-af13-568367021650"
+#### comma separated
+#P1=$1
+#P2=$2
+
+#mnisek
+#P1=49.86215,14.26684
+#P1=Ṕrague
+#russbach
+#P2=47.58928,13.46154
+
+parser = argparse.ArgumentParser(description='Short sample app')
+
+parser.add_argument('-f','--from', action="store", default="Praha",dest="fro" )
+parser.add_argument('-t','--to',   action="store", default="Brno")
+#parser.add_argument('-c', action="store", dest="c", type=int)
+args=parser.parse_args()
+
+ffrom="mnisek pod brdy"
+to="praha"
+ffrom=args.fro
+to=args.to
+
+ffrom=ffrom.replace(" ","%20")
+to=to.replace(" ","%20")
+print(ffrom,"->",to)
+BACKUPNAME=ffrom+'_'+to+'.gpx'
+
+fileex=False
+try:
+    with open(BACKUPNAME,"r") as f:
+        f.read()
+        print("FILE EXISTS AND READ")
+    fileex=True
+except:
+    fileex=False
+
+if fileex:
+    CMD="cp "+os.path.splitext(BACKUPNAME)[0]+".log  gps_target.log"
+    print("I WANT TO",CMD)
+    subprocess.call( CMD.split() )
+    quit()
+    
+print("FROM",ffrom)
+CMD='curl -o GraphHopper.from https://graphhopper.com/api/1/geocode?q='+ffrom+'&locale=cz&debug=false&key='+MYAPI
+subprocess.call( CMD.split() )
+print("TO",to)
+CMD='curl -o GraphHopper.to https://graphhopper.com/api/1/geocode?q='+to+'&locale=cz&debug=false&key='+MYAPI
+subprocess.call( CMD.split() )
+
+with open("GraphHopper.from") as f:
+    ff=f.read()
+with open("GraphHopper.to") as f:
+    tt=f.read()
+    
+ff=ff.rstrip().split("\n")
+lon1=list(filter( lambda x: x.find("lng")>0 ,ff))
+lon1=lon1[0].rstrip(",").split(":")[-1].strip() 
+lat1=list(filter( lambda x: x.find("lat")>0 ,ff))
+lat1=lat1[0].rstrip(",").split(":")[-1].strip() 
+
+tt=tt.rstrip().split("\n")
+lon2=list(filter( lambda x: x.find("lng")>0 ,tt))
+lon2=lon2[0].rstrip(",").split(":")[-1].strip() 
+lat2=list(filter( lambda x: x.find("lat")>0 ,tt))
+lat2=lat2[0].rstrip(",").split(":")[-1].strip() 
+
+print( ffrom,lon1,lat1, to, lon2, lat2 )
+
+CMD='curl -o GraphHopper.gpx https://graphhopper.com/api/1/route?point='+lat1+'%2C'+lon1+'&point='+lat2+'%2C'+lon2+'&vehicle=car&debug=true&key='+MYAPI+'&type=gpx '
+print(CMD)
+
+subprocess.call( CMD.split() )
+
+CMD='cp GraphHopper.gpx '+BACKUPNAME 
+subprocess.call( CMD.split() )
+# curl "https://graphhopper.com/api/1/route?point=51.131%2C12.414&point=48.224%2C3.867&vehicle=car&locale=de&key=7c367768-0952-489c-af13-568367021650"
+
+#####https://graphhopper.com/api/1/route?point=49.932707%2C11.588051&point=50.3404%2C11.64705&vehicle=car&debug=true&key=$MYAPI&type=json&calc_points=false&instructions=false
+
+
+#print( 'Number of arguments:', len(sys.argv), 'arguments.')
+#print( 'Argument List:', str(sys.argv))
+#
+#if len(sys.argv)>1:
+#    FILE=str(sys.argv[1])
+#else:
+FILE='GraphHopper.gpx'
+
+with open(FILE, 'r') as f:
+    list=f.read().split('\n')
+# NOT rtept === waypointy
+list2=[ x for x in list if x.find('lat')>0 and x.find("rtept")<=0]
+#print( list2 )
+
+with open( os.path.splitext( FILE )[0]+".log", "w") as ff:
+    for i in list2:
+        if len(i.split())>2:
+            y,x=i.split()[1].split('"')[1],i.split()[2].split('"')[1]
+            LINE="00:00:00 UTC {} {} 0.0 km/h 0 m H000 0.0\n".format(x,y)
+            #print(LINE , end="")
+            ff.write( LINE)
+
+print("OUTPUT TO gps_target.log")            
+with open( "gps_target.log", "w") as ff:
+    for i in list2:
+        if len(i.split())>2:
+            y,x=i.split()[1].split('"')[1],i.split()[2].split('"')[1]
+            LINE="00:00:00 UTC {} {} 0.0 km/h 0 m H000 0.0\n".format(x,y)
+            #print(LINE , end="")
+            ff.write( LINE)
+CMD="cp gps_target.log "+os.path.splitext(BACKUPNAME)[0]+'.log'
+subprocess.call( CMD.split() )

@@ -8,7 +8,10 @@ import sys
 print( 'Number of arguments:', len(sys.argv), 'arguments.')
 print( 'Argument List:', str(sys.argv))
 
-FILE=str(sys.argv[1])
+if len(sys.argv)>1:
+    FILE=str(sys.argv[1])
+else:
+    FILE='GraphHopper.gpx'
 
 with open(FILE, 'r') as f:
     list=f.read().split('\n')

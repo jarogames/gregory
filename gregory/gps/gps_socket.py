@@ -52,19 +52,20 @@ sock=None    #####
 # global variables:
 #gps_info={}
 gps_info={'fix':'0', 'course':0, 'speed':0,'altitude':0,
-          'timex':'00:00:00 UTC',
-          'acttime':'00:00:00',
-          'utc':0,
-          'XCoor':0,'YCoor':0,
-          'XOffs':0,'YOffs':0,
-          'LX':0,'LY':0,
-          'dist':0.0,
-          'disttot':0.0,
-          'utcdelay':-1.0
+          'timex':'00:00:00 UTC',#timex UTC time from gps 
+          'acttime':'00:00:00', # actual drive time
+          'utc':0,              # ?
+          'XCoor':0,'YCoor':0,  # lat lon
+          'XOffs':0,'YOffs':0,  #display out of center
+          'LX':0,'LY':0,   # last coord 
+          'dist':0.0,      # dist betwween 2 reads ! import.
+          'disttot':0.0,   # total dist from last reset
+          'trkdist':0.0,   # track distance (if any track)
+          'utcdelay':-1.0  # idea to compare delay on start and later
 }
 
-def set_gps_info( disttot):
-    gps_info['disttot']=disttot
+def set_gps_info( what, disttot ):
+    gps_info[what]=disttot
     
 #fix=None
 #course=0#
