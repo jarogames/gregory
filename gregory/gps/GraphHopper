@@ -119,3 +119,5 @@ with open( "gps_target.log", "w") as ff:
             ff.write( LINE)
 CMD="cp gps_target.log "+os.path.splitext(BACKUPNAME)[0]+'.log'
 subprocess.call( CMD.split() )
+CMD="ls -l gps_target.log "
+subprocess.call( CMD.split() )

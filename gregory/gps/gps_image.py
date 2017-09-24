@@ -211,7 +211,7 @@ def gps_circle( image , pos ,text , tcolor, radius=1.0):
     w, h = draw.textsize(text, font)
     posi=(1,1)
     if DEBUG: print("DEBUG",'isinstantce str ')
-    #if DEBUG: print("DEBUG",text,'course to ',pos)
+    if DEBUG: print("DEBUG",text,'course to ',pos)
     tox=IMX/2+sin(pos/180*pi)*IMY/2*radius  # IMY here
     toy=IMY/2-cos(pos/180*pi)*IMY/2*radius
     # shift the tox toy
@@ -228,7 +228,7 @@ def gps_circle( image , pos ,text , tcolor, radius=1.0):
     #        posi=( int(tox), int(toy) )
     posi=( tox, toy )
     posf=( posi[0]+w , posi[1]+h )
-    draw.rectangle( [posi,posf] , (0,0,0,110)  ) #grey rect
+    draw.rectangle( [posi,posf] , (0,0,0,110)  ) #grey dark rect
     draw.text( posi, text ,        tcolor  , font=font)
     #draw.text( posi, "MOON",         (255,115,0,100) , font=font)
     #draw.text( posi, text,         (0,200,200,100) , font=font)
@@ -371,13 +371,13 @@ def make_image(  fast_response=False ):
     #  now I have ntp related to GPS --------
     #
     realdelay=utc - gps_info['utc']
-    if realdelay>0 and realdelay<100000:
+    if realdelay>0 and realdelay<10000:
     #if realdelay>gps_info['utcdelay']:
         #if gps_info['utcdelay']==-1.0:
         #    print("======== CLOCK DELAY SET: ", realdelay)
         #    gps_info['utcdelay']=realdelay
-        print("...  --- make_img delayed to gps clock: ", realdelay, 's.', '{:.2f} s. to draw'.format(delta_img_draw))
-        if not fast_response and  realdelay>2 and realdelay<1000000:print("!... verify /etc/ntp.conf for GPS")
+        print("\n...  --- make_img delayed to gps clock: ", realdelay, 's.', '{:.2f} s. to draw'.format(delta_img_draw))
+        if not fast_response and  realdelay>2 and realdelay<10000:print("!... verify /etc/ntp.conf for GPS")
         return
    # print("{:4.0f} ms\n".format((start-LAST_IMAGE).microseconds/1000) )
 
@@ -499,19 +499,18 @@ def make_image(  fast_response=False ):
         LON=gps_info['XCoor'] #15.1749
         now = datetime.datetime.utcnow()
         res = sunposition.observed_sunpos(now,LAT,LON, gps_info['altitude'])[:2] #discard RA, dec, H
-        print("SUN position:",res)
+        print("\nSUN position:",res)
         suncol=(255,255,0,255) #yellow
-        # sunrise
-        degmax,degmin=5,-2
-        if res[1]<degmax and res[1]>degmin:
-            green=int(  (res[1]-degmin)/(degmax-degmin)*255)
-            suncol=(255,green,0,255)
-        #sunset
+        # sunrise # sunset
+        #degmax,degmin=5,-2
+        #if res[1]<degmax and res[1]>degmin:
+        #    green=int(  (res[1]-degmin)/(degmax-degmin)*255)
+        #    suncol=(255,green,0,255)
         degmax,degmin=92,85
         if res[1]<degmax and res[1]>degmin:
-            green=int(  (degmax-res[1])/(degmax-degmin)*255)
+            green=int(  (degmax-res[1])/(degmax-degmin)*150+104 )
             suncol=(255,green,0,255)
-            print(suncol)
+            #print(suncol)
         #night    
         if res[1]<=-2 or res[1]>92: suncol=(25,25,25,255)
         

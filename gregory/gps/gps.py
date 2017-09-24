@@ -225,6 +225,7 @@ if __name__ == "__main__":
         else:
             #print( "{} ".format(gps_info['fix']) , end="\r")
             if tkinter_loop.tk_zoom==None: tkinter_loop.tk_zoom=0
+            gps_info['fix']="NOFIX"
             #tkinter_loop.tk_image=tkinter_loop.m1.render(zoom=tkinter_loop.tk_zoomset[ tkinter_loop.tk_zoom] , center=(gps_info['XCoor'] , gps_info['YCoor'] )   )
 
             #make_image()
