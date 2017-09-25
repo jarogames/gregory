@@ -225,7 +225,7 @@ if __name__ == "__main__":
         else:
             #print( "{} ".format(gps_info['fix']) , end="\r")
             if tkinter_loop.tk_zoom==None: tkinter_loop.tk_zoom=0
-            gps_info['fix']="NOFIX"
+            #gps_info['fix']="NOFIX" - no- this no solves
             #tkinter_loop.tk_image=tkinter_loop.m1.render(zoom=tkinter_loop.tk_zoomset[ tkinter_loop.tk_zoom] , center=(gps_info['XCoor'] , gps_info['YCoor'] )   )
 
             #make_image()
@@ -281,13 +281,13 @@ if __name__ == "__main__":
             if tkinter_loop.tk_zoom==3:gps_info['XOffs']=gps_info['XOffs']+0.01*2/tkinter_loop.resizeF
         if cmd=="UP":
             print("...UP", tkinter_loop.resizeF)
-            if tkinter_loop.tk_zoom==0:gps_info['YOffs']=gps_info['YOffs']+8*2/tkinter_loop.resizeF
+            if tkinter_loop.tk_zoom==0:gps_info['YOffs']=gps_info['YOffs']+7*2/tkinter_loop.resizeF
             if tkinter_loop.tk_zoom==1:gps_info['YOffs']=gps_info['YOffs']+0.5*2/tkinter_loop.resizeF
             if tkinter_loop.tk_zoom==2:gps_info['YOffs']=gps_info['YOffs']+0.05*2/tkinter_loop.resizeF
             if tkinter_loop.tk_zoom==3:gps_info['YOffs']=gps_info['YOffs']+0.005*2/tkinter_loop.resizeF
         if cmd=="DOWN":
             print("...DOWN")
-            if tkinter_loop.tk_zoom==0:gps_info['YOffs']=gps_info['YOffs']-8*2/tkinter_loop.resizeF
+            if tkinter_loop.tk_zoom==0:gps_info['YOffs']=gps_info['YOffs']-7*2/tkinter_loop.resizeF
             if tkinter_loop.tk_zoom==1:gps_info['YOffs']=gps_info['YOffs']-0.5*2/tkinter_loop.resizeF
             if tkinter_loop.tk_zoom==2:gps_info['YOffs']=gps_info['YOffs']-0.05*2/tkinter_loop.resizeF
             if tkinter_loop.tk_zoom==3:gps_info['YOffs']=gps_info['YOffs']-0.005*2/tkinter_loop.resizeF

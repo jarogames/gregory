@@ -195,6 +195,10 @@ resizeF=1
 #    global resizeF
 #    resizeF=fac
 ###set_resizeF(2)
+def getIMX():
+    return IMX
+def getIMY():
+    return IMY
 
 def recalc_screen_size( resizeF1):
     global IMX,IMY,IMX_ORI,IMY_ORI, resizeF
@@ -204,6 +208,7 @@ def recalc_screen_size( resizeF1):
     resizeF=resizeF1
     m1 = StaticMap( IMX,IMY, url_template='http://localhost:8900/{z}/{x}/{y}.png')
     #print()
+    
 recalc_screen_size(2)
 
 tk_zoomset=[5,8,12,15]   # zoom  0,1,2

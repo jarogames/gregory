@@ -8,7 +8,7 @@ import datetime
 from datetime import timedelta
 
 
-from gregory.gps.tkinter_loop import IMX,IMY
+from gregory.gps.tkinter_loop import IMX,IMY,getIMX,getIMY
 ### PIL for printing on png file
 from PIL import Image
 from PIL import ImageFont
@@ -167,9 +167,10 @@ def load_track_log():
         LASTACTTIME=li.split()[0].strip()
         TRACK_LIST.append(  (x,y)  )
         totdist=float( li.split()[9].strip() )
+        print(totdist)
     print( "============== PRESET TOT DIST ",gps_info['disttot'],"->",totdist )
     #### NW gps_info['disttot']=totdist
-    set_gps_info( 'totdist', totdist )
+    set_gps_info( 'disttot', totdist )
     #gps_socket.gps_info['distttot']=totdist   # i want to continue with
     #gps_socket.gps_info['distttot']=444.444
     #gps_info['distttot']=totdist
@@ -177,7 +178,7 @@ def load_track_log():
     gps_info['XCoor']=TRACK_LIST[-1][0]
     gps_info['YCoor']=TRACK_LIST[-1][1]
     gps_info['acttime']=LASTACTTIME
-    print( "======== acttime ",gps_start_time, "tracklist=" , LASTACTTIME, type(gps_start_time) )
+    print( "======== acttime ",gps_start_time, "tracklist=" , LASTACTTIME )
     gps_start_time=gps_start_time - datetime.timedelta( seconds=get_sec( LASTACTTIME ) )
     
     #gps_start_time=gps_start_time-datetime.timedelta( seconds=9 )
@@ -198,8 +199,8 @@ def gps_circle( image , pos ,text , tcolor, radius=1.0):
     global DEBUG
     #DEBUG=True
     if DEBUG:print("DEBUG","entered gettext")
-    global IMX
-    global IMY
+    #global IMX
+    #global IMY
     draw = ImageDraw.Draw(image, 'RGBA')
     font22   = ImageFont.truetype("Ubuntu-B.ttf", 22)
     font14 = ImageFont.truetype("Ubuntu-B.ttf", 14)
@@ -212,14 +213,14 @@ def gps_circle( image , pos ,text , tcolor, radius=1.0):
     posi=(1,1)
     if DEBUG: print("DEBUG",'isinstantce str ')
     if DEBUG: print("DEBUG",text,'course to ',pos)
-    tox=IMX/2+sin(pos/180*pi)*IMY/2*radius  # IMY here
-    toy=IMY/2-cos(pos/180*pi)*IMY/2*radius
+    tox=getIMX()/2+sin(pos/180*pi)*getIMY()/2*radius  # IMY here
+    toy=getIMY()/2-cos(pos/180*pi)*getIMY()/2*radius
     # shift the tox toy
     tox=int(tox-w/2)
     toy=int(toy-h/2)
-    if (tox+w)>IMX: tox=IMX-w-1
+    if (tox+w)>getIMX(): tox=getIMX()-w-1
     if (tox)<0:   tox=1
-    if (toy+h)>=IMY: toy=IMY-h
+    if (toy+h)>=getIMY(): toy=getIMY()-h
     if (toy)<0:   toy=1
     #        if ( sin(pos)>=0):
     #            tox=tox-w
@@ -232,7 +233,7 @@ def gps_circle( image , pos ,text , tcolor, radius=1.0):
     draw.text( posi, text ,        tcolor  , font=font)
     #draw.text( posi, "MOON",         (255,115,0,100) , font=font)
     #draw.text( posi, text,         (0,200,200,100) , font=font)
-    draw.ellipse( (5 +IMX/2-IMY/2, 5, IMX/2+IMY/2-5, IMY-5), fill =None, outline ='black')
+    draw.ellipse( (5 +getIMX()/2-getIMY()/2, 5, getIMX()/2+getIMY()/2-5, getIMY()-5), fill =None, outline ='black')
 
 
 
@@ -244,8 +245,8 @@ def gps_circle( image , pos ,text , tcolor, radius=1.0):
 def gps_text(image,pos,text,fg='black',bg='white',radius=1.0):
     global DEBUG
     if DEBUG:print("DEBUG","entered gettext")
-    global IMX
-    global IMY
+    #global IMX
+    #global IMY
     draw = ImageDraw.Draw(image, 'RGBA')
     font22   = ImageFont.truetype("Ubuntu-B.ttf", 22)
     font14 = ImageFont.truetype("Ubuntu-B.ttf", 14)
@@ -262,21 +263,21 @@ def gps_text(image,pos,text,fg='black',bg='white',radius=1.0):
         if (pos=='lt'):
             posi=(1,1)
         if (pos=='lb'):
-            posi=(1,IMY-h)
+            posi=(1,getIMY()-h)
         if (pos=='rt'):
-            posi=(IMX-w-2,1)
+            posi=(getIMX()-w-2,1)
         if (pos=='rb'):
-            posi=(IMX-w-2,IMY-h)
+            posi=(getIMX()-w-2,getIMY()-h)
     else:
         if DEBUG: print("DEBUG",text,'course to ',pos)
-        tox=IMX/2+sin(pos/180*pi)*IMX/2*radius
-        toy=IMY/2-cos(pos/180*pi)*IMY/2*radius
+        tox=getIMX()/2+sin(pos/180*pi)*getIMX()/2*radius
+        toy=getIMY()/2-cos(pos/180*pi)*getIMY()/2*radius
         # shift the tox toy
         tox=int(tox-w/2)
         toy=int(toy-h/2)
-        if (tox+w)>IMX: tox=IMX-w-1
+        if (tox+w)>getIMX(): tox=getIMX()-w-1
         if (tox)<0:   tox=1
-        if (toy+h)>=IMY: toy=IMY-h
+        if (toy+h)>=getIMY(): toy=getIMY()-h
         if (toy)<0:   toy=1
 #        if ( sin(pos)>=0):
 #            tox=tox-w
@@ -285,7 +286,7 @@ def gps_text(image,pos,text,fg='black',bg='white',radius=1.0):
 #        posi=( int(tox), int(toy) )
         posi=( tox, toy )
          
-    if DEBUG: print('DEBUG','120=', w,h, posi, IMX,IMY)
+    if DEBUG: print('DEBUG','120=', w,h, posi, getIMX(),getIMY())
     posf=( posi[0]+w , posi[1]+h )
     whitefog=(255, 255, 255, 110)
     blackfog=(0, 0, 0, 110)
