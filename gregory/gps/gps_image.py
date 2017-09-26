@@ -17,7 +17,7 @@ from PIL import ImageDraw
 
 # to use get_text with radius
 #from math import floor,cos,sin
-from math import sqrt,cos,sin,pi,floor,asin,radians
+from math import sqrt,cos,sin,pi,floor,asin,radians,pow
 
 
 from functools import reduce
@@ -28,11 +28,19 @@ TRACK_LIST=[]
 TARGET_LIST=[]
 POI_LIST=[]
 
+# display SUN/MOON
 SUNMOONv=False
 def SUNMOON():
     global SUNMOONv
     SUNMOONv=not SUNMOONv
     return SUNMOONv
+
+#display watch time of gps_target.log
+WATCHTIMEv=False
+def WATCHTIME():
+    global WATCHTIMEv
+    WATCHTIMEv=not WATCHTIMEv
+    return WATCHTIMEv
 
 def reset_gps_start_time():
     global  gps_start_time
@@ -99,6 +107,17 @@ def load_poi_log():
 
 
 
+#############
+# i will need to decode trak log 00:00:05  ->  5
+#                decode target time also 
+#
+def get_sec(time_str):
+    h, m, s = time_str.split(':')
+    de= int(h) * 3600 + int(m) * 60 + int(s)
+    #print(de,'seconds')
+    return de
+
+
 
     
 ##############################
@@ -115,12 +134,18 @@ def load_target_log():
             lines=f.read().rstrip().split("\n")
     except:
         print("NO TARGET TACK    gps_target.log")
+    ## if lines < than 2
     if len(lines)<2:
         return
     print( "\nNumber of lines in TARGET:", len(lines) )
+    ## if some lines have ---- or #comment
     for li in lines:
-        x,y=float(li.split()[2].strip()),float(li.split()[3].strip())
-        TARGET_LIST.append(  (x,y)  )
+        if len(li.split())>4:
+            x,y=float(li.split()[2].strip()),float(li.split()[3].strip())
+            tim=int( get_sec(li.split()[0]) )
+            TARGET_LIST.append(  (x,y,tim)  )
+            
+    #--- measure the distance in gps_tareget.log
     trackdist=0.0
     for p in range(len(TARGET_LIST)-1):
         a=TARGET_LIST[p][0]
@@ -128,23 +153,13 @@ def load_target_log():
         x=TARGET_LIST[p+1][0]
         y=TARGET_LIST[p+1][1]
         trackdist=trackdist+ get_dist_prec(a,b,x,y)
-        print(trackdist, a, b )
+        #print(trackdist, a, b )
     print("TRACK DIST=", trackdist)
     set_gps_info('trkdist', trackdist )
 
 
     
     
-#############
-# i will need to decode trak log 00:00:05
-#
-#
-def get_sec(time_str):
-    h, m, s = time_str.split(':')
-    de= int(h) * 3600 + int(m) * 60 + int(s)
-    print(de,'seconds')
-    return de
-
 
     
 def load_track_log():
@@ -162,12 +177,14 @@ def load_track_log():
     print( "\nNumber of lines in TRACK:", len(lines) )
     totdist=0.0
     LASTACTTIME="00:00:00"
+    if len(lines)<2:
+        return
     for li in lines:
         x,y=float(li.split()[2].strip()),float(li.split()[3].strip())
         LASTACTTIME=li.split()[0].strip()
         TRACK_LIST.append(  (x,y)  )
         totdist=float( li.split()[9].strip() )
-        print(totdist)
+        #print(totdist)
     print( "============== PRESET TOT DIST ",gps_info['disttot'],"->",totdist )
     #### NW gps_info['disttot']=totdist
     set_gps_info( 'disttot', totdist )
@@ -421,10 +438,32 @@ def make_image(  fast_response=False ):
     tkinter_loop.m1.markers=[]
 
     #========  IS TARGET = NAVIGATION
-    for coor in TARGET_LIST:
+    closetarg=100000
+    tgtag=(0,0,0)
+    for coor3 in TARGET_LIST:
+        coor=(coor3[0],coor3[1]) # [2] is time in seconds
         mam=CircleMarker( coor, 'blue', 3)
         #print( coor)
         tkinter_loop.m1.add_marker(mam)
+        # compute closest point to XYCoor
+        ct2=get_dist_prec(gps_info['XCoor'],gps_info['YCoor'],
+                          coor[0],coor[1] )
+        #ct2=pow(gps_info['XCoor']-coor[0],2) + pow(gps_info['YCoor']-coor[1],2)
+        if (ct2<closetarg):
+            closetarg=ct2
+            tgtag=coor3
+
+    # special mode - d pressed - plot closest point
+    if WATCHTIMEv:  # compare the target points with gps
+        print("closest target: {} {:.1f} km".format( tgtag,closetarg ) )
+        mam=CircleMarker( tgtag, 'red', 7)
+        tkinter_loop.m1.add_marker(mam)
+        mam=CircleMarker( tgtag, 'white', 5)
+        tkinter_loop.m1.add_marker(mam)
+
+
+
+        
     #========  IS OLD TRACK
     for coor in TRACK_LIST:
         mam=CircleMarker( coor, 'orange', 3)
@@ -473,6 +512,14 @@ def make_image(  fast_response=False ):
             if tkinter_loop.tk_zoom>0: tkinter_loop.tk_zoom=tkinter_loop.tk_zoom-1
 
 
+            
+            
+    if WATCHTIMEv:  # display (if d was pressed) time difference
+        QQ=strfdelta(start-gps_start_time+timedelta(seconds=tgtag[2]),"%H:%M:%S")
+        gps_text( tkinter_loop.tk_image, 0 ,"D={}   {:.1f}".format(QQ,closetarg), fg='white',bg='black',radius=0.7)        
+
+
+        
 
     ##### PRINT  LABELS TO CORNERS #####        
     ##### DISTTOT
@@ -494,6 +541,7 @@ def make_image(  fast_response=False ):
 
     # here i just define what is written
     gps_info['acttime']=strfdelta(start-gps_start_time,"%H:%M:%S")
+
     
     if SUNMOONv:
         LAT=gps_info['YCoor'] #37.6287

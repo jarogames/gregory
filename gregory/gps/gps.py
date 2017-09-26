@@ -57,7 +57,7 @@ import mymod.keypress as keypress
 from staticmap import StaticMap, CircleMarker, Line
 
 
-from gregory.gps.gps_image import make_image, load_track_log, load_target_log, load_poi_log, SUNMOON, reset_gps_start_time
+from gregory.gps.gps_image import make_image, load_track_log, load_target_log, load_poi_log, SUNMOON,WATCHTIME, reset_gps_start_time
 
 import datetime # to reset acttime
 
@@ -259,6 +259,9 @@ if __name__ == "__main__":
         #Show sun moon
         if cmd=="s":
             print("SUNMOON is", SUNMOON() )
+        #Show watchtime
+        if cmd=="d":
+            print("(d pressed - driver) WATCHTIME is", WATCHTIME() )
             
 
         #RESET Offsets
