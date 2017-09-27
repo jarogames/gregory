@@ -515,8 +515,15 @@ def make_image(  fast_response=False ):
             
             
     if WATCHTIMEv:  # display (if d was pressed) time difference
-        QQ=strfdelta(start-gps_start_time+timedelta(seconds=tgtag[2]),"%H:%M:%S")
-        gps_text( tkinter_loop.tk_image, 0 ,"D={}   {:.1f}".format(QQ,closetarg), fg='white',bg='black',radius=0.7)        
+        QQ1=start-gps_start_time - timedelta(seconds=tgtag[2])
+        print("QQ=", QQ1.seconds)
+        if QQ1.seconds>40000:
+            QQ=strfdelta( timedelta(seconds=3600*24-QQ1.seconds) ,"%H:%M:%S")
+            gps_text( tkinter_loop.tk_image, 0 ,"D={}   {:.1f}".format(QQ,closetarg), fg='white',bg='green',radius=0.7)        
+
+        else:
+            QQ=strfdelta( QQ1,"%H:%M:%S")
+            gps_text( tkinter_loop.tk_image, 0 ,"D={}   {:.1f}".format(QQ,closetarg), fg='white',bg='red',radius=0.7)        
 
 
         
