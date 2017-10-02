@@ -37,12 +37,16 @@
 # borg prune -v --list $REPOSITORY --prefix '{hostname}-' \
 #     --keep-daily=7 --keep-weekly=4 --keep-monthly=6
 
-import mymod
+### THIS=argpar+loggin MUST BE HERE???? ##############
+### original import mymod worked locally only
+from mymod import mymod   # this is ok with gregory install
 mymod.argparse_ini()
+mymod.parser.add_argument('--list', '-l',action="store_true", help='list')
 mymod.argparse_fin()
 mymod.logging_ini()
 mymod.logging_fin()
-from mymod import logger,logger_head
+###from mymod import logger,logger_head # worked localy
+from mymod.mymod import logger,logger_head
 
 import os
 import subprocess
@@ -64,24 +68,25 @@ def get_signature():
     return r
 
 
-def prune_repo(repo):
-    CMD='borg prune -v --list '
-    CMD=CMD+repo
-    CMD=CMD+' --prefix '+get_hostname()+' '
-    CMD=CMD+' --keep-within=7d --keep-weekly=4 --keep-monthly=-1 '
-    logger.infoC( CMD )
-    return
+# def prune_repo(repo):
+#     CMD='borg prune -v --list '
+#     CMD=CMD+repo
+#     CMD=CMD+' --prefix '+get_hostname()+' '
+#     CMD=CMD+' --keep-within=7d --keep-weekly=4 --keep-monthly=-1 '
+#     logger.infoC( CMD )
+#     return
 
 
 def load_addr_repo_pairs():
     global logger
-    logger.info("going to INIT")
+    logger.info("going to INIT /load_repo_pairs/")
     li=[]
     try:
         with open(CONFIGFILE) as f:
             li=f.readlines()
     except:
         logger.error("NO FILE "+CONFIGFILE+' / quit')
+        logger.error("file contains:  path_to_repo path_to_data4backup")
         quit()
     # clean lines
     li=[ i.strip() for i in li]
@@ -213,6 +218,28 @@ def borg_create( repo , sig, directory ):
     return "ok"
 
 
+
+def borg_prune( repo , sig, directory ):
+    """
+    borg prune -v --list --keep-daily=7 --keep-weekly=4 --keep-monthly=-1 /path/to/repo
+    """
+    OPTIONS="  -v --list --keep-daily=10 --keep-weekly=4 --keep-monthly=-1 "
+    CMD="borg prune "+OPTIONS+" "+repo
+    logger.infoC( CMD )
+    try:
+        res=subprocess.check_output( CMD, shell=True ).decode("utf8")
+        # very extensive LOG
+        logger.infoP("ok")
+        logger.infoP(res)
+    except subprocess.CalledProcessError as grepexc:
+            logger.error("error code "+ str(grepexc.returncode) )
+            logger.error("no host - no directory")
+            
+
+
+        
+        
+
 def borg_info( repo, stamp):
     CMD="borg info "+repo+"::"+stamp
     logger.infoC( CMD)
@@ -269,28 +296,41 @@ def countdown(txt, n):
 #  MAIN
 #
 #################################
+
+
 SIGNATURE=get_signature()
 logger.info( SIGNATURE )
 pairs=load_addr_repo_pairs()
+
+if mymod.args.list:
+    logger.info("list only")
+    for li in pairs:
+        borg_list( li[0] )
+    quit()
+
 results=[]
 ok=0
 nokq=0 # ?? ping
 nok=0  # error
 for li in pairs:
-    logger_head.infoX( li[1] )
-    logger.info( li[0]+" - "+li[1] )
-    last=borg_list( li[0] )
+    logger_head.infoX( "about to backup "+li[1] )
+    logger.info(       "    into repo   "+li[0] )
+    last=borg_list( li[0] ) 
     if last==None:
         countdown("initialize new repository?",15)
+        if not os.path.exists( li[0] ):
+            os.makedirs( li[0] )
         borg_init( li[0] )
         last=""
     if last is "": # empty line
-        logger.warning("there was empty line in repo")
+        logger.warning("there was empty line in repo ... probably totaly new repo")
         #countdown("there was empty line in repo",3)
         #continue
     logger_head.infoC(last+" ==> "+SIGNATURE)
-    countdown("create new backup?",8)
+    countdown("create new backup now?",8)
     res=borg_create( li[0], SIGNATURE , li[1] )
+    # added 20171002 - pruning -leave 10days,
+    borg_prune( li[0], SIGNATURE , li[1] )
     results.append( [res,li[1]]  )
     #print( results )
     if res=="ok":
