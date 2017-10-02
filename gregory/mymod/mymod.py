@@ -18,7 +18,7 @@ import os, sys
 import time
 import zmq
 import pprint # print json line
-
+print("... I am in mymod.py ................")
 ######################################### arguments parser ####
 parser=None
 args=None
