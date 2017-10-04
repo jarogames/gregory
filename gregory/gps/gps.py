@@ -25,14 +25,15 @@ fudge 127.127.28.1 refid PPS
 and systemctrl restart ntp
 and check with ntpq -p
 '''
-import mymod.mymod as mymod
+# import mymod.mymod as mymod #old setup
+from gregory.mymod import mymod
 # .py is appended automatically
 
 mymod.argparse_ini()
 mymod.argparse_fin()
 mymod.logging_ini()
 mymod.logging_fin()
-from mymod.mymod import logger,logger_head
+from gregory.mymod.mymod import logger,logger_head
 
 
 import os
@@ -46,13 +47,13 @@ print("=============================================")
 import  gregory.gps.tkinter_loop as tkinter_loop
 
 #from mymod import logge0,args,command_parser_init,command_parser_step
-from mymod.mymod import command_parser_init,command_parser_step
+from gregory.mymod.mymod import command_parser_init,command_parser_step
 
 ## From gps_socket (my) global variable should be loaded.
 from gregory.gps.gps_socket import translate_gps_line, gps_info, set_gps_info
 
 ## keypressing in terminal - now nonblocking
-import mymod.keypress as keypress
+import gregory.mymod.keypress as keypress
 
 from staticmap import StaticMap, CircleMarker, Line
 
