@@ -1,0 +1,94 @@
+#!/usr/bin/python3
+#####!/bin/bash
+
+import subprocess as s
+import datetime
+import time
+import os
+import sys
+
+def set_environment():
+    # i want unity or xfce4 - on p34
+    CMD="pgrep -u "+os.environ['USER']+" xfce4|unity-panel"
+    pid=s.check_output( CMD.split() ).split()[0].decode("utf8").rstrip()
+    print("I have PID", pid)
+    CMD="grep -z DBUS_SESSION_BUS_ADDRESS /proc/"+pid+"/environ"
+    dsba=s.check_output( CMD.split()  ).decode("utf8").rstrip()
+    dsba2=dsba.split("DBUS_SESSION_BUS_ADDRESS=")[1]
+    print("I have DSBA ", dsba)
+    print("I have DSBA2", dsba2)
+    return dsba2
+
+mydsba=set_environment()
+
+
+def note( mess, col="" ):
+    global mysdba
+    ICOPA="/usr/share/icons/gnome/32x32/status/"
+    ICOPA="/usr/share/icons/breeze/status/64/"
+    CMD="notify-send -t 1 -i "+ICOPA
+    if col=="green":
+        CMD=CMD+"security-high.svg"
+    elif col=="red":
+        CMD=CMD+"security-low.svg"
+    elif col=="yellow":
+        CMD=CMD+"security-medium.svg"
+    else:
+        CMD=CMD+"dialog-question.vg"
+        
+    CMDL=CMD.split()
+    CMDL.append(mess)
+    s.call( CMDL , env={"DBUS_SESSION_BUS_ADDRESS":mydsba} )
+
+    
+
+def checkntp():
+    CMD="ntpq -p"
+    from subprocess import check_output
+    res=s.check_output( CMD.split() )
+    # HERE - ALSO REFUSED CAN COME !!!!?
+    return res
+
+
+#################
+#main
+#################
+#mydsba=set_environment()  # already checked with definition of mydsba
+start=datetime.datetime.now()    
+res=checkntp().decode("utf8")  # run ntpq -p
+delta=(datetime.datetime.now()-start).seconds+(datetime.datetime.now()-start).microseconds/1e+6
+print(delta,'seconds to parse ntpq')
+aa=res.split("\n")
+aa=list(filter(None,aa)) # remove empty elements
+#print(aa)
+bb=[ x for x in aa if x[0]=="+" or x[0]=="*" ] # only + servers
+print("BB:",bb)
+#print( len(bb))
+# ==== if GPS in + - say in
+if len( [ x for x in bb if x.find("GPS")>0 and x.find('SHM')>0 ]  )>0:
+    GPSM="    GPS_IN"
+else:
+    GPSM=""
+
+# green / red     
+# if time bellow 1 second - some problem with inet or 1 server    
+if len(bb)>0:
+    color="green" 
+else:
+    color="red"
+
+# if ntpq is parset too quicky - in 0 seconds    
+if delta<0.1:
+    GPSM="    NO INET?"
+    color="yellow"
+
+
+note( "NTP {} hosts in {:.1f}s {}".format(len(bb),delta,GPSM ) , color )
+
+#====== wait until 1 minute
+print('waiting up to 2 minutes')
+while (datetime.datetime.now()-start).seconds<360:
+    time.sleep(1)
+    print("." , end="")
+    sys.stdout.flush()
+
