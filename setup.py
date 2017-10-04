@@ -29,7 +29,7 @@ def package_files(directory):
         for filename in filenames:
             paths.append(os.path.join('..', path, filename))
     return paths
-#extra_files = package_files('mymod/') # i did this with NuPhy
+extra_files = package_files('mymod/') # i did this with NuPhy
 
 
 #############   if you want to version git and setup be the same #########
@@ -68,10 +68,10 @@ setup(
     keywords = "python",
     url = "",
     #package_dir = {'': 'mymod'},
-    #py_modules=['mymod.mymod'],
-    #packages=['gregory.mymod','gregory','gregory.gps'],
+    py_modules=['mymod'],
+    packages=['gregory.mymod','gregory','gregory.gps'],
     scripts=['bin/gps.py','bin/keypress.py','bin/pureborg.py'],
-    #package_data={'':extra_files},  # this I did with NuPhyPy ... [ok]
+    package_data={'':extra_files},  # this I did with NuPhyPy ... [ok]
     long_description=read('README.md'),
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
