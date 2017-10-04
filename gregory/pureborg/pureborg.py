@@ -57,6 +57,47 @@ from email.mime.text import MIMEText
 
 CONFIGFILE=os.environ['HOME']+"/.borgbackup_pairs"
 
+
+#=======================  notify-send =========
+# ===  from ntpcheck
+
+def set_environment():
+    # i want unity or xfce4 - on p34
+    CMD="pgrep -u "+os.environ['USER']+" xfce4|unity-panel"
+    pid=subprocess.check_output( CMD.split() ).split()[0].decode("utf8").rstrip()
+    print("I have PID", pid)
+    CMD="grep -z DBUS_SESSION_BUS_ADDRESS /proc/"+pid+"/environ"
+    dsba=subprocess.check_output( CMD.split()  ).decode("utf8").rstrip()
+    dsba2=dsba.split("DBUS_SESSION_BUS_ADDRESS=")[1]
+    print("I have DSBA ", dsba)
+    print("I have DSBA2", dsba2)
+    return dsba2
+
+mydsba=set_environment()
+
+
+def note( mess, col="" ):
+    global mysdba
+    ICOPA="/usr/share/icons/gnome/32x32/status/"
+    ICOPA="/usr/share/icons/breeze/status/64/"
+    CMD="notify-send -t 1 -i "+ICOPA
+    if col=="green":
+        CMD=CMD+"security-high.svg"
+    elif col=="red":
+        CMD=CMD+"security-low.svg"
+    elif col=="yellow":
+        CMD=CMD+"security-medium.svg"
+    else:
+        CMD=CMD+"dialog-question.vg"
+        
+    CMDL=CMD.split()
+    CMDL.append(mess)
+    subprocess.call( CMDL , env={"DBUS_SESSION_BUS_ADDRESS":mydsba} )
+
+#======================== ENDOF NOTIFYSEND =================
+
+
+
 def get_hostname():
     import socket
     return socket.gethostname()
@@ -198,7 +239,7 @@ def borg_create( repo , sig, directory ):
             logger.error("no host - no directory")
             return "??"
 
-    OPTIONS=" -v --stats --compression lzma,9 --info "
+    OPTIONS=" -v --stats -p --compression lzma,9 --info "
     CMD="borg create "+OPTIONS+" "+repo+"::"+sig+" "+directory
     logger.infoC( CMD )
     try:
@@ -241,6 +282,11 @@ def borg_prune( repo , sig, directory ):
         
 
 def borg_info( repo, stamp):
+    """
+    i dont remember- but borg info will show details about the REPO
+    it will be put into LOG - so probably never seen again....
+    ... could go to email
+    """
     CMD="borg info "+repo+"::"+stamp
     logger.infoC( CMD)
     res2=subprocess.check_output( CMD, shell=True ).decode("utf8").rstrip().split("\n")
@@ -341,10 +387,13 @@ for li in pairs:
     if res=="ok":
         borg_info(li[0], SIGNATURE)
         ok=ok+1
+        note(li[0]+" [ok]","green")
     elif res=="??":
         nokq=nokq+1
+        note(li[0]+" [??]","yellow")
     else:
         nok=nok+1
+        note(li[0]+" [xx]","red")
 ##########################################
 mail_out_results(SIGNATURE, ok, nokq, nok )
 print( results )
