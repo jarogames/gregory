@@ -180,11 +180,12 @@ def load_track_log():
     if len(lines)<2:
         return
     for li in lines:
-        x,y=float(li.split()[2].strip()),float(li.split()[3].strip())
-        LASTACTTIME=li.split()[0].strip()
-        TRACK_LIST.append(  (x,y)  )
-        totdist=float( li.split()[9].strip() )
-        #print(totdist)
+        if len(li.split())>9:
+            x,y=float(li.split()[2].strip()),float(li.split()[3].strip())
+            LASTACTTIME=li.split()[0].strip()
+            TRACK_LIST.append(  (x,y)  )
+            totdist=float( li.split()[9].strip() )
+            #print(totdist)
     print( "============== PRESET TOT DIST ",gps_info['disttot'],"->",totdist )
     #### NW gps_info['disttot']=totdist
     set_gps_info( 'disttot', totdist )

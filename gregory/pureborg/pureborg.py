@@ -39,14 +39,14 @@
 
 ### THIS=argpar+loggin MUST BE HERE???? ##############
 ### original import mymod worked locally only
-from mymod import mymod   # this is ok with gregory install
+from gregory.mymod import mymod   # this is ok with gregory install
 mymod.argparse_ini()
 mymod.parser.add_argument('--list', '-l',action="store_true", help='list')
 mymod.argparse_fin()
 mymod.logging_ini()
 mymod.logging_fin()
 ###from mymod import logger,logger_head # worked localy
-from mymod.mymod import logger,logger_head
+from gregory.mymod.mymod import logger,logger_head
 
 import os
 import subprocess
