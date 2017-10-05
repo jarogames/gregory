@@ -369,7 +369,9 @@ for li in pairs:
                 os.makedirs( li[0] )
             except:
                 logger.error("Cannot create a directory "+li[0] )
-                results.append( ["xx",li[1]]  )
+                results.append( ["xx",li[1]+"--->"+li[0] ]  )
+                note(li[0]+" [xx]","red")
+                nok=nok+1
                 continue  # ? next item in pairs ?
             borg_init( li[0] )
         last=""
@@ -382,7 +384,7 @@ for li in pairs:
     res=borg_create( li[0], SIGNATURE , li[1] )
     # added 20171002 - pruning -leave 10days,
     borg_prune( li[0], SIGNATURE , li[1] )
-    results.append( [res,li[1]]  )
+    results.append( [res,li[1]+"--->"+li[0] ]  )
     #print( results )
     if res=="ok":
         borg_info(li[0], SIGNATURE)
