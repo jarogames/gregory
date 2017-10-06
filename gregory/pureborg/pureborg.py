@@ -220,6 +220,7 @@ def borg_create( repo , sig, directory ):
     borg create -v --stats /path/to/repo::Tuesday ~/src ~/Documents
     '''
     ssh=False
+    #====   ssh address (MyBookLive e.g.)
     # if directory  is ssh address:   ~ must be expanded
     if not os.path.isdir( os.path.expanduser(directory) ):
         logger.warning("directory "+directory+" doesnt exist")
@@ -238,24 +239,41 @@ def borg_create( repo , sig, directory ):
             logger.error("error code "+ str(grepexc.returncode) )
             logger.error("no host - no directory")
             return "??"
-
+    # ===  try to "create" - but - a lock can appear here!!
     OPTIONS=" -v --stats -p --compression lzma,9 --info "
     CMD="borg create "+OPTIONS+" "+repo+"::"+sig+" "+directory
     logger.infoC( CMD )
+    create_ok=False
     try:
         res=subprocess.check_output( CMD, shell=True ).decode("utf8")
         # very extensive LOG
         logger.infoP("ok")
         logger.infoP(res)
+        create_ok=True
     except subprocess.CalledProcessError as grepexc:
-        logger.error("error code "+ str(grepexc.returncode)+ grepexc.output.decode('utf8'))
-        #quit() # if problem, i dont want to QUIT before others
-        logger.error("cannot create backup")
-        if ssh:unmount_sshfs(directory)
-        countdown("problem",10)
+        logger.error("error code "+ str(grepexc.returncode)+grepexc.output.decode('utf8'))
+        logger.error("cannot create backup ..... maybe ....")
+    if not create_ok:
+        # === I try to break the lock  ======
+        note("trying to BREAK BORG LOCK !","red")
+        countdown("...  I TRY TO BREAK THE BORG FILE LOCK /maybe dangerous/ ...",15)
+        CMDBREAK="borg break-lock "+repo
+        res=subprocess.check_output( CMDBREAK, shell=True ).decode("utf8")
+        try:
+            res=subprocess.check_output( CMD, shell=True ).decode("utf8")
+            # very extensive LOG
+            logger.infoP("ok")
+            logger.infoP(res)
+            create_ok=True
+        except subprocess.CalledProcessError as grepexc:
+            logger.error("error code "+ str(grepexc.returncode)+ grepexc.output.decode('utf8'))
+            logger.error("... even with break-lock ... cannot create")
+    # ==== END OF CREATE ====
+    if ssh:unmount_sshfs(directory)
+    if not create_ok:
+        countdown("ending this repo with a problem",10)
         return "xx"
     #logger.info( CMD )
-    if ssh:unmount_sshfs(directory)
     return "ok"
 
 
@@ -359,11 +377,11 @@ ok=0
 nokq=0 # ?? ping
 nok=0  # error
 for li in pairs:
-    logger_head.infoX( "about to backup "+li[1] )
-    logger.info(       "    into repo   "+li[0] )
+    logger_head.infoX( "about to backup : "+li[1] )
+    logger_head.infoX( "    into repo   : "+li[0] )
     last=borg_list( li[0] ) 
     if last==None:
-        countdown("initialize new repository?",15)
+        countdown("initialize new repository?",5)
         if not os.path.exists( li[0] ):
             try:
                 os.makedirs( li[0] )
