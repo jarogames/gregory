@@ -58,7 +58,7 @@ import gregory.mymod.keypress as keypress
 from staticmap import StaticMap, CircleMarker, Line
 
 
-from gregory.gps.gps_image import make_image, load_track_log, load_target_log, load_poi_log, SUNMOON,WATCHTIME, reset_gps_start_time
+from gregory.gps.gps_image import make_image, load_track_log, load_target_log, load_poi_log, SUNMOON,WATCHTIME, reset_gps_start_time,reset_TRACK_LIST
 
 import datetime # to reset acttime
 
@@ -255,7 +255,7 @@ if __name__ == "__main__":
             # RESET TRACK LOG
             with open("gps_track.log","w") as f:
                 f.write( gpsline+"\n")
-
+            reset_TRACK_LIST()
 
         #Show sun moon
         if cmd=="s":

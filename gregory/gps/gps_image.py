@@ -28,6 +28,11 @@ TRACK_LIST=[]
 TARGET_LIST=[]
 POI_LIST=[]
 
+def reset_TRACK_LIST():
+    global TRACK_LIST
+    TRACK_LIST=[]
+
+
 # display SUN/MOON
 SUNMOONv=False
 def SUNMOON():
