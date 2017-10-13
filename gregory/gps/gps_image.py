@@ -252,7 +252,7 @@ def gps_circle( image , pos ,text , tcolor, radius=1.0):
     #        posi=( int(tox), int(toy) )
     posi=( tox, toy )
     posf=( posi[0]+w , posi[1]+h )
-    draw.rectangle( [posi,posf] , (0,0,0,110)  ) #grey dark rect
+    draw.rectangle( [posi,posf] , (0,0,0,50)  ) #grey dark rect
     draw.text( posi, text ,        tcolor  , font=font)
     #draw.text( posi, "MOON",         (255,115,0,100) , font=font)
     #draw.text( posi, text,         (0,200,200,100) , font=font)

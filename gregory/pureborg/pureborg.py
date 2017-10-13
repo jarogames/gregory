@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
+#
+#  /etc/fstab ========================= FOR USB :
+# UUID=9E70-9058  /media/ojr/9E70-9058  auto rw,user,exec,umask=000  0 3
 
+#
 ############################################
 #  python interface to a regular BORG backup
 ############################################
