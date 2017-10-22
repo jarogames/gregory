@@ -59,6 +59,8 @@ import smtplib
 # Import the email modules we'll need
 from email.mime.text import MIMEText
 
+import glob  # i want to parse ~/.*  config
+
 CONFIGFILE=os.environ['HOME']+"/.borgbackup_pairs"
 
 
@@ -142,16 +144,20 @@ def load_addr_repo_pairs():
     return li
 
 
+
+
+
+
 def mail_out_results( SIG, ok, nokq , nok):
     global results
-    texth=" OK="+str(ok)+" ??="+str(nokq)+" BAD="+str(nok) 
+    texth=" OK="+str(ok)+" --="+str(nokq)+" BAD="+str(nok) 
     logger.infoP("mailing results: "+texth )
     texth=SIG+" "+texth
     # Create a text/plain message #    msg = MIMEText(fp.read())
     textb=""
     for i in results:
         textb=textb+"  ".join(i)+"\n"
-    msg=MIMEText( textb + "\n\n\n??...no ping\nxx...error\n")
+    msg=MIMEText( textb + "\n\n\n--...no ping\nxx...error\n")
     me="borg@localhost"# == the sender's email address
     you="root@localhost"# you == the recipient's email address
     msg['Subject'] = 'BORG '+texth
@@ -163,6 +169,10 @@ def mail_out_results( SIG, ok, nokq , nok):
     s.sendmail(me, [you], msg.as_string())
     s.quit()
     return
+
+
+
+
 
 
 def unmount_sshfs(dest):
@@ -178,13 +188,51 @@ def unmount_sshfs(dest):
         logger.error("cannot unmount "+dest)
         countdown("problem",10)
         quit()
+
+
+
+
+
+def flush_mysql( server_folder ):
+    MODIR="~/BORGBACKUP/mount_mysql/"
+    MODIR=os.path.expanduser(MODIR)
+    if not os.path.isdir(MODIR):
+        logger.error("I need to have "+MODIR+" to backup")
+        CMD="mkdir -p "+MODIR
+        res=subprocess.check_output( CMD, shell=True ).decode("utf8")
+        logger.infoP("directory "+CMD+" created")
+        #quit()
+    # directory created.....
+    mysqls=glob.glob( os.path.expanduser("~/.*.mysql") )
+    allconf=[]
+    with open( mysqls[0] ) as f:
+        logger.infoC("mysql config readout")
+        allconf=f.readlines()
+        #########if localhost
+        #########print(allconf)
+    CMD= "mysqldump -u "+allconf[1].rstrip()+" -p"+allconf[2].rstrip()+" --all-databases > "+MODIR+"all-databases.mysql"
+    print( CMD )
+    try:
+        res=subprocess.check_output( CMD, shell=True ).decode("utf8")
+    except subprocess.CalledProcessError as grepexc:
+        logger.error("error code "+ str(grepexc.returncode)+ grepexc.output.decode('utf8'))
+        logger.error("cannot do mysqldump") # MOSTLY already EXist
+        countdown("problem",10)
+        return "xx"        
+
+    
+    
+    
     
 def mount_sshfs( server_folder):
     MODIR="~/BORGBACKUP/mount_sshfs/"
     MODIR=os.path.expanduser(MODIR)
     if not os.path.isdir(MODIR):
         logger.error("I need to have "+MODIR+" to backup")
-        quit()
+        CMD="mkdir -p "+MODIR
+        res=subprocess.check_output( CMD, shell=True ).decode("utf8")
+        logger.infoP("directory "+CMD+" created")
+        #quit()
     CMD="sshfs "+server_folder+" "+MODIR
     logger.infoC( CMD )
     try:
@@ -199,7 +247,11 @@ def mount_sshfs( server_folder):
         return ""
         #quit()# no quit possible inside
     return MODIR
-    
+
+
+
+
+
 def borg_init( repo ):
     '''
     first is borg init /path/to/repo
@@ -218,6 +270,12 @@ def borg_init( repo ):
     return
 
 
+
+
+
+
+
+
 def borg_create( repo , sig, directory ):
     '''
     borg create /path/to/repo::Monday ~/src ~/Documents 
@@ -225,6 +283,14 @@ def borg_create( repo , sig, directory ):
     '''
     ssh=False
     #====   ssh address (MyBookLive e.g.)
+    # if not directory=> can be ssh:
+    #                 => can be mysql:
+    if directory.split(":")[0]=="mysql":
+        logger.infoC("MYSQL                 ")
+        res=flush_mysql( directory )
+        if res=="xx": return res
+        quit()
+        return "ok"
     # if directory  is ssh address:   ~ must be expanded
     if not os.path.isdir( os.path.expanduser(directory) ):
         logger.warning("directory "+directory+" doesnt exist")
@@ -237,12 +303,12 @@ def borg_create( repo , sig, directory ):
             ssh=True
             # newly the DIR will be mounted 
             directory=mount_sshfs(directory)
-            if directory=="": return "??"
+            if directory=="": return "--"
         except subprocess.CalledProcessError as grepexc:
             #logger.error("error code "+ str(grepexc.returncode)+ grepexc.output.decode('utf8'))
             logger.error("error code "+ str(grepexc.returncode) )
             logger.error("no host - no directory")
-            return "??"
+            return "--"
     # ===  try to "create" - but - a lock can appear here!!
     OPTIONS=" -v --stats -p --compression lzma,9 --info "
     CMD="borg create "+OPTIONS+" "+repo+"::"+sig+" "+directory
@@ -325,6 +391,9 @@ def borg_info( repo, stamp):
     return
 
 
+
+
+
 def borg_list( repo ):
     '''
     I use `borg list repo`
@@ -350,6 +419,11 @@ def borg_list( repo ):
     return res
 
 
+
+
+
+
+
 def countdown(txt, n):
     vin="|"
     out="|"
@@ -359,11 +433,22 @@ def countdown(txt, n):
         time.sleep(1)
     #quit()
 
+
+
+
+
+
+
+
+    
+    
 #################################
 #
 #  MAIN
 #
 #################################
+
+
 
 
 SIGNATURE=get_signature()
@@ -378,7 +463,7 @@ if mymod.args.list:
 
 results=[]
 ok=0
-nokq=0 # ?? ping
+nokq=0 # -- ping
 nok=0  # error
 for li in pairs:
     logger_head.infoX( "about to backup : "+li[1] )
@@ -412,9 +497,9 @@ for li in pairs:
         borg_info(li[0], SIGNATURE)
         ok=ok+1
         note(li[0]+" [ok]","green")
-    elif res=="??":
+    elif res=="--":
         nokq=nokq+1
-        note(li[0]+" [??]","yellow")
+        note(li[0]+" [--]","yellow")
     else:
         nok=nok+1
         note(li[0]+" [xx]","red")
