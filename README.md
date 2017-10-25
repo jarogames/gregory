@@ -16,3 +16,8 @@ will be done.
 | mymod.py    | **template** with args and logging and ... |
 | keypress.py | sample of key send via zmq |
 | linesend.py | sample of command send va zmq |
+
+Next - applications using mymod some way - or useful for myservice:
+
+- pureborg.py
+- gps.py

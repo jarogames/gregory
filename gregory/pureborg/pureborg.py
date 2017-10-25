@@ -61,7 +61,8 @@ from email.mime.text import MIMEText
 
 import glob  # i want to parse ~/.*  config
 
-CONFIGFILE=os.environ['HOME']+"/.borgbackup_pairs"
+#CONFIGFILE=os.environ['HOME']+"/.borgbackup_pairs"
+CONFIGFILE=os.environ['HOME']+"/.pureborg.pairs"
 
 
 #=======================  notify-send =========
@@ -184,7 +185,7 @@ def unmount_sshfs(dest):
         logger.infoP("ok")
         logger.infoP(res)
     except subprocess.CalledProcessError as grepexc:
-        logger.error("error code "+ str(grepexc.returncode)+ grepexc.output.decode('utf8'))
+        logger.error("sshfs:error code "+ str(grepexc.returncode)+ grepexc.output.decode('utf8'))
         logger.error("cannot unmount "+dest)
         countdown("problem",10)
         quit()
@@ -215,7 +216,7 @@ def flush_mysql( server_folder ):
     try:
         res=subprocess.check_output( CMD, shell=True ).decode("utf8")
     except subprocess.CalledProcessError as grepexc:
-        logger.error("error code "+ str(grepexc.returncode)+ grepexc.output.decode('utf8'))
+        logger.error("flushmysql:error code "+ str(grepexc.returncode)+ grepexc.output.decode('utf8'))
         logger.error("cannot do mysqldump") # MOSTLY already EXist
         countdown("problem",10)
         return "xx"        
@@ -241,7 +242,7 @@ def mount_sshfs( server_folder):
         logger.infoP("ok")
         logger.infoP(res)
     except subprocess.CalledProcessError as grepexc:
-        logger.error("error code "+ str(grepexc.returncode)+ grepexc.output.decode('utf8'))
+        logger.error("mountssh:error code "+ str(grepexc.returncode)+ grepexc.output.decode('utf8'))
         logger.error("cannot init NEW borg REPO") # MOSTLY already EXist
         countdown("problem",10)
         return ""
@@ -250,6 +251,28 @@ def mount_sshfs( server_folder):
 
 
 
+
+UNMOUNT_THESE=[]
+def get_mountpoints(repo):
+    global UNMOUNT_THESE
+    with open("/etc/fstab") as f:
+        lines=f.readlines()
+    lines=[ x.rstrip() for x in lines if x[0]!="#"]
+    mpoi=[ x.split()[1] for x in lines ]
+    mpoi=[ x for x in mpoi if ( x.find("/mnt/")>=0 or x.find("/media")>=0 ) ]
+    print(  mpoi )
+    moun=[ x for x in mpoi if repo.find(x)>=0 ]
+    if len(moun)>0:
+        if os.path.ismount( moun[0] ):
+            logger.info(repo+" is already mounted ... ")
+            return 0
+        else:
+            logger.infoP("i try to mount"+moun[0])
+            CMD="mount "+moun[0]
+            reslist=subprocess.check_output( CMD, shell=True ).decode("utf8").rstrip().split("\n")
+            UNMOUNT_THESE.append( moun[0] )
+            return 1
+    return 0
 
 
 def borg_init( repo ):
@@ -264,7 +287,7 @@ def borg_init( repo ):
         logger.infoP("ok")
         logger.infoP(res)
     except subprocess.CalledProcessError as grepexc:
-        logger.error("error code "+ str(grepexc.returncode)+ grepexc.output.decode('utf8'))
+        logger.error("init:error code "+ str(grepexc.returncode)+ grepexc.output.decode('utf8'))
         logger.error("cannot init NEW borg REPO")
         countdown("problem",10)
     return
@@ -306,7 +329,7 @@ def borg_create( repo , sig, directory ):
             if directory=="": return "--"
         except subprocess.CalledProcessError as grepexc:
             #logger.error("error code "+ str(grepexc.returncode)+ grepexc.output.decode('utf8'))
-            logger.error("error code "+ str(grepexc.returncode) )
+            logger.error("create:error code "+ str(grepexc.returncode) )
             logger.error("no host - no directory")
             return "--"
     # ===  try to "create" - but - a lock can appear here!!
@@ -321,7 +344,7 @@ def borg_create( repo , sig, directory ):
         logger.infoP(res)
         create_ok=True
     except subprocess.CalledProcessError as grepexc:
-        logger.error("error code "+ str(grepexc.returncode)+grepexc.output.decode('utf8'))
+        logger.error("create2:error code "+ str(grepexc.returncode)+grepexc.output.decode('utf8'))
         logger.error("cannot create backup ..... maybe ....")
     if not create_ok:
         # === I try to break the lock  ======
@@ -336,7 +359,7 @@ def borg_create( repo , sig, directory ):
             logger.infoP(res)
             create_ok=True
         except subprocess.CalledProcessError as grepexc:
-            logger.error("error code "+ str(grepexc.returncode)+ grepexc.output.decode('utf8'))
+            logger.error("create3:error code "+ str(grepexc.returncode)+ grepexc.output.decode('utf8'))
             logger.error("... even with break-lock ... cannot create")
     # ==== END OF CREATE ====
     if ssh:unmount_sshfs(directory)
@@ -361,7 +384,7 @@ def borg_prune( repo , sig, directory ):
         logger.infoP("ok")
         logger.infoP(res)
     except subprocess.CalledProcessError as grepexc:
-            logger.error("error code "+ str(grepexc.returncode) )
+            logger.error("prune:error code "+ str(grepexc.returncode) )
             logger.error("no host - no directory")
             
 
@@ -408,7 +431,9 @@ def borg_list( repo ):
         logger.infoP("ok "+str(len(reslist)))
     except subprocess.CalledProcessError as grepexc:
         # deosnot exist ... error 2
-        logger.error("error code "+ str(grepexc.returncode)+ grepexc.output.decode('utf8'))
+        logger.error("list: error code "+ str(grepexc.returncode)+ grepexc.output.decode('utf8'))
+        # try to mount ..... owncloud case 
+        get_mountpoints(repo)
         return None
     if not reslist[-1].rstrip()=="": 
         res=reslist[-1].split()[0]
@@ -466,6 +491,9 @@ ok=0
 nokq=0 # -- ping
 nok=0  # error
 for li in pairs:
+    if len(li)<2:
+        logger.error("BAD INPUT LINE ... STOPPING")
+        quit()
     logger_head.infoX( "about to backup : "+li[1] )
     logger_head.infoX( "    into repo   : "+li[0] )
     last=borg_list( li[0] ) 
@@ -506,4 +534,8 @@ for li in pairs:
 ##########################################
 mail_out_results(SIGNATURE, ok, nokq, nok )
 print( results )
-
+for x in UNMOUNT_THESE:
+    logger.info("fusermount -u "+x)
+    CMD="fusermount -u "+x
+    res=subprocess.check_output( CMD.split() ).split()[0].decode("utf8").rstrip()
+    print(res)
