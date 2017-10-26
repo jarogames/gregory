@@ -2,7 +2,9 @@
 #
 #  /etc/fstab ========================= FOR USB :
 # UUID=9E70-9058  /media/ojr/9E70-9058  auto rw,user,exec,umask=000,nofail  0 3
-
+# UUID=9E70-9058  /media/ojr/9E70-9058  auto rw,user,exec,umask=000,nofail  0 3
+# ======== new thing - i want owncloud here but not mounted, mountable on demand
+# https://owncloud.cesnet.cz/remote.php/webdav/ 	/mnt/owncloud 	davfs 	rw,noauto,user	0		0
 #
 ############################################
 #  python interface to a regular BORG backup
@@ -205,16 +207,23 @@ def flush_mysql( server_folder ):
         #quit()
     # directory created.....
     mysqls=glob.glob( os.path.expanduser("~/.*.mysql") )
+    logger.info( "AvailableMySQLs: "+" ".join(mysqls) )
     allconf=[]
-    with open( mysqls[0] ) as f:
-        logger.infoC("mysql config readout")
-        allconf=f.readlines()
-        #########if localhost
-        #########print(allconf)
-    CMD= "mysqldump -u "+allconf[1].rstrip()+" -p"+allconf[2].rstrip()+" --all-databases > "+MODIR+"all-databases.mysql"
-    print( CMD )
+    CMD=""
+    FROMPATH=MODIR+"all-databases_in_edie.mysql"
+    for onesql in mysqls:
+        with open( onesql ) as f:
+            logger.infoC("mysql config readout: "+onesql)
+            allconf=f.readlines()
+        if allconf[0].rstrip()=="localhost":
+            CMD= "mysqldump -u "+allconf[1].rstrip()+" -p"+allconf[2].rstrip()+" --all-databases > "+FROMPATH
+            logger.info("preparing to flush mysql to: "+FROMPATH)
+        else:
+            logger.info("not localhost sql: ",onesql)
+    #print( CMD )
     try:
         res=subprocess.check_output( CMD, shell=True ).decode("utf8")
+        return FROMPATH
     except subprocess.CalledProcessError as grepexc:
         logger.error("flushmysql:error code "+ str(grepexc.returncode)+ grepexc.output.decode('utf8'))
         logger.error("cannot do mysqldump") # MOSTLY already EXist
@@ -312,8 +321,10 @@ def borg_create( repo , sig, directory ):
         logger.infoC("MYSQL                 ")
         res=flush_mysql( directory )
         if res=="xx": return res
-        quit()
-        return "ok"
+        logger.info("mysql flushed into a temporary file "+res)
+        directory=os.path.dirname(res)
+        #####quit()
+        ###return "ok"
     # if directory  is ssh address:   ~ must be expanded
     if not os.path.isdir( os.path.expanduser(directory) ):
         logger.warning("directory "+directory+" doesnt exist")
@@ -491,9 +502,10 @@ ok=0
 nokq=0 # -- ping
 nok=0  # error
 for li in pairs:
+    logger_head.infoX("=============================================================")
     if len(li)<2:
         logger.error("BAD INPUT LINE ... STOPPING")
-        quit()
+        break
     logger_head.infoX( "about to backup : "+li[1] )
     logger_head.infoX( "    into repo   : "+li[0] )
     last=borg_list( li[0] ) 
@@ -534,8 +546,10 @@ for li in pairs:
 ##########################################
 mail_out_results(SIGNATURE, ok, nokq, nok )
 print( results )
+for qq in results:
+    print(qq,"\n")
 for x in UNMOUNT_THESE:
     logger.info("fusermount -u "+x)
     CMD="fusermount -u "+x
     res=subprocess.check_output( CMD.split() ).split()[0].decode("utf8").rstrip()
-    print(res)
+    #print(res)
