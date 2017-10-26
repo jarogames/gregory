@@ -551,5 +551,5 @@ for qq in results:
 for x in UNMOUNT_THESE:
     logger.info("fusermount -u "+x)
     CMD="fusermount -u "+x
-    res=subprocess.check_output( CMD.split() ).split()[0].decode("utf8").rstrip()
+    res=subprocess.check_output( CMD.split() )#.split()[0].decode("utf8").rstrip()
     #print(res)
