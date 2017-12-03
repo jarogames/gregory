@@ -49,6 +49,7 @@
 from gregory.mymod import mymod   # this is ok with gregory install
 mymod.argparse_ini()
 mymod.parser.add_argument('--list', '-l',action="store_true", help='list')
+mymod.parser.add_argument('--mount', '-m',action="store_true", help='borg mount with zenity')
 mymod.argparse_fin()
 mymod.logging_ini()
 mymod.logging_fin()
@@ -67,6 +68,67 @@ import glob  # i want to parse ~/.*  config
 #CONFIGFILE=os.environ['HOME']+"/.borgbackup_pairs"
 CONFIGFILE=os.environ['HOME']+"/.pureborg.pairs"
 
+
+######## FROM A TEST WITH ZENITY #######  MOUNT THE BACKUP
+from zenipy import calendar,message,error,warning,question,entry,password,file_selection,scale,color_selection,zlist
+
+MOUNTPOINT=os.path.expanduser("~/BORGBACKUP/recovery_mount_point")
+if not os.path.isdir( MOUNTPOINT ):
+    print("!... creating",MOUNTPOINT)
+    os.makedirs(MOUNTPOINT)
+
+
+#-------------- borg mount / fusermount -u ----
+def UMOUNT():    
+    CMD="fusermount -u "+MOUNTPOINT
+    try:
+        res=subprocess.check_output( CMD, shell=True ).decode("utf8")
+        # very extensive LOG
+        print("i... ok"+res)
+    except subprocess.CalledProcessError as grepexc:
+        print("e... mount:error code "+ str(grepexc.returncode)+ grepexc.output.decode('utf8'))
+
+def MOUNT(mou):        
+    CMD="fusermount "+mou+" "+MOUNTPOINT
+    CMD="borg mount "+mou+" "+MOUNTPOINT
+    print("i...",CMD)
+    try:
+        res=subprocess.check_output( CMD, shell=True ).decode("utf8")
+        # very extensive LOG
+        print("i... ok"+res)
+    except subprocess.CalledProcessError as grepexc:
+        print("e... mount:error code "+ str(grepexc.returncode)+ grepexc.output.decode('utf8'))
+
+def RUNXTERM():
+    CMD="xterm -fa 'Monospace' -fs 14 -e 'cd ~/BORGBACKUP/recovery_mount_point;mc' "
+    try:
+        res=subprocess.check_output( CMD, shell=True ).decode("utf8")
+        # very extensive LOG
+        print("i... ok"+res)
+    except subprocess.CalledProcessError as grepexc:
+        print("e... mount:error code "+ str(grepexc.returncode)+ grepexc.output.decode('utf8'))
+
+def MOUNTUMOUNT():
+ 
+    with open(CONFIGFILE) as f:
+        lines=f.readlines()
+    lines=[ x.rstrip() for x in lines if x[0]!="#"]    
+    #print(lines)    
+
+    ########## zenity ##########
+    res=zlist( ["lines"], lines )
+    if res is None:
+        print("q... nothing selected")
+        quit()
+    UMOUNT()        
+    mou=res[0].split()[0]
+    print("i... mounting {} to {}".format(mou,MOUNTPOINT))
+    ### CMD ###
+    MOUNT(mou)
+    RUNXTERM()
+    UMOUNT()
+
+    
 
 #=======================  notify-send =========
 # ===  from ntpcheck
@@ -496,6 +558,11 @@ if mymod.args.list:
     logger.info("list only")
     for li in pairs:
         borg_list( li[0] )
+    quit()
+
+if mymod.args.mount:
+    logger.info("mount /mc /fusermount -u  only")
+    MOUNTUMOUNT()
     quit()
 
 results=[]
