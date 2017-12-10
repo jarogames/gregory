@@ -2,7 +2,30 @@
 import subprocess as sp
 import os
 
-print("i... gregory pi....")
+print("... gregory pi....")
+
+def get_fix_ip( name , ssid="drakula5" ):
+    pinames={ "pim":   10, 
+              "_pi__1":11, 
+              "pi4":   12, 
+              "_pi__2":13, 
+              "pib":   14,
+              "_pi__3":15,
+              "pix2":  16,
+              "pix3":  17 }
+    pinames={ "pim":"mobile1", 
+              "pi3":"======", 
+              "pi4":"KOSTEL2", 
+              "_pi__2":"=====", 
+              "pib":"CAM_OUT_LEFT",
+              "_pi__3":"=====",
+              "pix2":"VOICE",
+              "pix3":"MOBILE2" }
+    print("i... get ip",name,"@",ssid)
+    if name in pinames.keys():
+        return "192.168.0."+str( pinames[name] )
+    return "192.168.0.0"
+
 
 
 def run_cmd(CMD):
@@ -45,7 +68,8 @@ def rpi_type( rev ):
 
 
 me=whoami()
-print("I am ", me[0] )
+ip=get_fix_ip( me[0]  )
+print("I am ", me[0] , ip )
 print("     memory MB ", me[1] )
 print("     CPUs      ", me[2] )
 print("     revision  ", me[3] )
