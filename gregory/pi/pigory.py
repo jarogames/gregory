@@ -28,8 +28,8 @@ def whoami():
 
 
 def rpi_type( rev ):
-    if rev=="22082": return "Pi3B_china"
-    if rev=="02082": return "Pi3B_UK"
+    if rev=="a22082": return "Pi3B_china"
+    if rev=="a02082": return "Pi3B_UK"
     if rev=="9000C1": return "PiZeroW"
     if rev=="a01041": return "Pi2B_1.1_UK"
     if rev=="a21041": return "Pi2B_1.1_china"
