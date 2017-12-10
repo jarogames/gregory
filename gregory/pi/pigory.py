@@ -76,7 +76,8 @@ def whoami():
 
     cpuinfo=run_cmd("cat /proc/cpuinfo")
     cpuinfo=cpuinfo.split("\n")
-    ncpu=[ x for x in cpuinfo if x.find("processor")>=0 ]
+    ncpu=[ x for x in cpuinfo if x.find("processor")==0 ]
+    print("DEBUG", ncpu)
     ncpu=int(ncpu[-1].split()[-1] )+1
     rev=[ x for x  in cpuinfo if x.find("Revision")>=0 ]
     if DEBUG:print( "Revision",rev )
