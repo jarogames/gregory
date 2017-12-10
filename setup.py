@@ -70,7 +70,7 @@ setup(
     #package_dir = {'': 'mymod'},
     py_modules=['mymod'],
     packages=['gregory.mymod','gregory','gregory.gps'],
-    scripts=['bin/gps.py','bin/keypress.py','bin/pureborg.py'],
+    scripts=['bin/gps.py','bin/keypress.py','bin/pureborg.py','bin/pigory.py'],
     package_data={'':extra_files},  # this I did with NuPhyPy ... [ok]
     long_description=read('README.md'),
     classifiers=[
