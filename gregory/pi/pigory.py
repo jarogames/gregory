@@ -4,27 +4,49 @@ import os
 
 print("... gregory pi....")
 
-def get_fix_ip( name , ssid="drakula5" ):
+def get_fix_ip( name , ssid="drakula5" , desc=False, loc=False):
     pinames={ "pim":   10, 
               "_pi__1":11, 
               "pi4":   12, 
-              "_pi__2":13, 
+              "pi3":   13, 
               "pib":   14,
-              "_pi__3":15,
+              "pix1":  15,
               "pix2":  16,
-              "pix3":  17 }
-    pinames={ "pim":"mobile1", 
-              "pi3":"======", 
-              "pi4":"KOSTEL2", 
-              "_pi__2":"=====", 
-              "pib":"CAM_OUT_LEFT",
-              "_pi__3":"=====",
+              "pix3":  17,
+              "pix4":  18 }
+    pidesc={ "pim":"mobile1", 
+              "_pi__1":"======", 
+              "pi4" :"KOSTEL2", 
+              "pi3" :"CAM_OUT_LEFTG",
+              "pib" :"CAM_OUT_RIGHT",
+              "pix1":"AUDIO_TOUCHSCR",
               "pix2":"VOICE",
-              "pix3":"MOBILE2" }
-    print("i... get ip",name,"@",ssid)
-    if name in pinames.keys():
-        return "192.168.0."+str( pinames[name] )
-    return "192.168.0.0"
+              "pix3":"MOBILE_CAM_2" ,
+              "pix4":"SOLAR_PANEL" 
+    }
+    pilocat={ "pim":"Undef", 
+              "_pi__1":"======", 
+              "pi4" :"kostel2", 
+              "pi3" :"garage_attic",
+              "pib" :"outside_pillar",
+              "pix1":"garage",
+              "pix2":"kitchen",
+              "pix3":"MOBILE_CAM_2" ,
+              "pix4":"garden" 
+    }
+    #print("i... get ip",name,"@",ssid)
+    if desc==False and loc==False:
+        if name in pinames.keys():
+            return "192.168.0."+str( pinames[name] )
+        return "192.168.0.250"
+    if desc:
+        if name in pidesc.keys():
+            return pidesc[name]
+        return "unknown"
+    if loc:
+        if name in pilocat.keys():
+            return pilocat[name]
+        return "unknown"
 
 
 
@@ -68,12 +90,30 @@ def rpi_type( rev ):
 
 
 me=whoami()
-ip=get_fix_ip( me[0]  )
-print("I am ", me[0] , ip )
-print("     memory MB ", me[1] )
-print("     CPUs      ", me[2] )
-print("     revision  ", me[3] )
-print("     TYPE      ", rpi_type(me[3]) )
-ftagname=os.path.expanduser( "~/__"+rpi_type(me[3])+"__" )
+ip=get_fix_ip( me[0] , ssid="drakula5" )
+desc=get_fix_ip( me[0], desc=True )
+loca=get_fix_ip( me[0], loc=True )
+print("I am ", me[0] )
+print("     IP         :", ip)
+print("     description:", desc)
+print("     location   :", loca)
+print("     memory MB   ", me[1] )
+print("     CPUs        ", me[2] )
+print("     revision    ", me[3] )
+print("     TYPE        ", rpi_type(me[3]) )
+
+ftagname=os.path.expanduser( "~/z1__"+rpi_type(me[3])+"__" )
+with open( ftagname ,"w" ) as f:
+    f.write( " ".join( str(me) ) )
+
+ftagname=os.path.expanduser( "~/z2__"+ip+"__" )
+with open( ftagname ,"w" ) as f:
+    f.write( " ".join( str(me) ) )
+
+ftagname=os.path.expanduser( "~/z3__"+desc+"__" )
+with open( ftagname ,"w" ) as f:
+    f.write( " ".join( str(me) ) )
+
+ftagname=os.path.expanduser( "~/z4__"+loca+"__" )
 with open( ftagname ,"w" ) as f:
     f.write( " ".join( str(me) ) )
