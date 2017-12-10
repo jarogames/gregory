@@ -1,7 +1,53 @@
 #!/usr/bin/python3
 import subprocess as sp
+import os
 
-print("i... gregory pi....")
+print("... gregory pi....")
+
+def get_fix_ip( name , ssid="drakula5" , desc=False, loc=False):
+    pinames={ "pim":   10, 
+              "_pi__1":11, 
+              "pi4":   12, 
+              "pi3":   13, 
+              "pib":   14,
+              "pix1":  15,
+              "pix2":  16,
+              "pix3":  17,
+              "pix4":  18 }
+    pidesc={ "pim":"mobile1", 
+              "_pi__1":"======", 
+              "pi4" :"KOSTEL2", 
+              "pi3" :"CAM_OUT_LEFTG",
+              "pib" :"CAM_OUT_RIGHT",
+              "pix1":"AUDIO_TOUCHSCR",
+              "pix2":"VOICE",
+              "pix3":"MOBILE_CAM_2" ,
+              "pix4":"SOLAR_PANEL" 
+    }
+    pilocat={ "pim":"Undef", 
+              "_pi__1":"======", 
+              "pi4" :"kostel2", 
+              "pi3" :"garage_attic",
+              "pib" :"outside_pillar",
+              "pix1":"garage",
+              "pix2":"kitchen",
+              "pix3":"MOBILE_CAM_2" ,
+              "pix4":"garden" 
+    }
+    #print("i... get ip",name,"@",ssid)
+    if desc==False and loc==False:
+        if name in pinames.keys():
+            return "192.168.0."+str( pinames[name] )
+        return "192.168.0.250"
+    if desc:
+        if name in pidesc.keys():
+            return pidesc[name]
+        return "unknown"
+    if loc:
+        if name in pilocat.keys():
+            return pilocat[name]
+        return "unknown"
+
 
 
 def run_cmd(CMD):
@@ -20,15 +66,54 @@ def whoami():
     cpuinfo=cpuinfo.split("\n")
     ncpu=[ x for x in cpuinfo if x.find("processor")>=0 ]
     ncpu=int(ncpu[-1].split()[-1] )+1
-    return hname,memtot,ncpu
+    rev=[ x for x  in cpuinfo if x.find("Revision")>=0 ]
+    #print( "REV",rev )
+    rev=rev[0].split()[-1]
+    return hname,memtot,ncpu,rev
 
-def rpi_type( cpu,mem):
-    if cpu==4 and mem>512:
-        if 1==1: return "pi2B"
-        if 1==2: return "pi3B"
+
+def rpi_type( rev ):
+    if rev=="a22082": return "Pi3B_china"
+    if rev=="a02082": return "Pi3B_UK"
+    if rev=="9000C1": return "PiZeroW"
+    if rev=="a01041": return "Pi2B_1.1_UK"
+    if rev=="a21041": return "Pi2B_1.1_china"
+    if rev=="0015": return "PiA+"
+    if rev=="900032": return "PiB+"
+    if rev=="0010": return "PiB+"
+    if rev=="0013": return "PiB+"
+    return "unknown_type"
+#    if cpu==4 and mem>512:
+#        if 1==1: return "pi2B"
+#        if 1==2: return "pi3B"
+
+
 
 me=whoami()
+ip=get_fix_ip( me[0] , ssid="drakula5" )
+desc=get_fix_ip( me[0], desc=True )
+loca=get_fix_ip( me[0], loc=True )
 print("I am ", me[0] )
-print("     memory MB ", me[1] )
-print("     CPUs      ", me[2] )
-print("I am ", me[0] )
+print("     IP         :", ip)
+print("     description:", desc)
+print("     location   :", loca)
+print("     memory MB   ", me[1] )
+print("     CPUs        ", me[2] )
+print("     revision    ", me[3] )
+print("     TYPE        ", rpi_type(me[3]) )
+
+ftagname=os.path.expanduser( "~/z1__"+rpi_type(me[3])+"__" )
+with open( ftagname ,"w" ) as f:
+    f.write( " ".join( str(me) ) )
+
+ftagname=os.path.expanduser( "~/z2__"+ip+"__" )
+with open( ftagname ,"w" ) as f:
+    f.write( " ".join( str(me) ) )
+
+ftagname=os.path.expanduser( "~/z3__"+desc+"__" )
+with open( ftagname ,"w" ) as f:
+    f.write( " ".join( str(me) ) )
+
+ftagname=os.path.expanduser( "~/z4__"+loca+"__" )
+with open( ftagname ,"w" ) as f:
+    f.write( " ".join( str(me) ) )
