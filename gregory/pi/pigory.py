@@ -20,7 +20,7 @@ if args.show:
     identpi.showall()
     quit()
 
-####################   find ssid
+####################   find ssid ### GO THROUGH
 curssid=wlan.get_current_ssid( )
 ssidok=identpi.is_in_networks( curssid )
 print( "i... i am on a known {:14s} wifi network ... {}".format(curssid,ssidok) )
@@ -28,8 +28,9 @@ allssids=wlan.get_visible_ssids()
 for x in allssids:
     ssidok=identpi.is_in_networks( x )
     print( "i... visible wifi    {:14s} is known     ... {}".format(x,ssidok) )
-    
 
+    
+####################    ME #  FILL ALL # MAKE FILES ######
 me=identpi.whoami()  # must: fills mydata[]
 ip=identpi.get_fix_ip( me[0] , ssid="drakula5" )
 desc=identpi.get_fix_ip( me[0], desc=True )
@@ -63,3 +64,10 @@ with open( ftagname ,"w" ) as f:
 ftagname=os.path.expanduser( "~/z5__"+loca+"__" )
 with open( ftagname ,"w" ) as f:
     f.write( " ".join( str(me) ) )
+
+
+########################################################
+#    now it is possible to do whatever,  **mydata** full
+########################################################
+
+ 

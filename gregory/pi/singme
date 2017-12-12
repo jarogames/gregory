@@ -1,0 +1,15 @@
+#!/bin/bash
+
+
+gpg --list-keys
+
+echo ============================= SIGN
+
+
+gpg --armor --detach-sig pigory.py
+
+echo ============================= VERIFY
+
+gpg --verify pigory.py.asc   pigory.py
+
+echo ============================= DONE
