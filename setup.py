@@ -63,7 +63,7 @@ setup(
     author = "jaromir mrazek",
     author_email = "jaromrax@gmail.com",
     description = ("Gregory will be a system of services in userspace"
-                                   "SUN is there. arrows respect factor"),
+                  ),
     license = "GPLv2",
     keywords = "python",
     url = "",

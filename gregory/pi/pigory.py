@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 from gregory.pi import identpi
 from gregory.pi import wlan
+from gregory.pi import prerequisites as prq
 import subprocess as sp
 import os
 import argparse
@@ -13,7 +14,9 @@ parser.add_argument('-s','--show', action="store_true", help='')
 parser.add_argument('--debug', action="store_true", help='')#,required=True
 args=parser.parse_args()
 
-
+print("\n")
+print("=====================================================")
+print("============ Pi Gregory.... PIGORY ==================")
 
 ####################   show all
 if args.show:
@@ -23,11 +26,11 @@ if args.show:
 ####################   find ssid ### GO THROUGH
 curssid=wlan.get_current_ssid( )
 ssidok=identpi.is_in_networks( curssid )
-print( "i... i am on a known {:14s} wifi network ... {}".format(curssid,ssidok) )
+print( "i... current ESSID   {:14s} is known?:     ... {}".format(curssid,ssidok) )
 allssids=wlan.get_visible_ssids()
 for x in allssids:
     ssidok=identpi.is_in_networks( x )
-    print( "i... visible wifi    {:14s} is known     ... {}".format(x,ssidok) )
+    print( "i... visible wifi    {:14s} is known?:     ... {}".format(x,ssidok) )
 
     
 ####################    ME #  FILL ALL # MAKE FILES ######
@@ -70,4 +73,9 @@ with open( ftagname ,"w" ) as f:
 #    now it is possible to do whatever,  **mydata** full
 ########################################################
 
- 
+p=prq.check_prerequisites()
+print("i... Prerequisites needed:", p)
+result=prq.install_prerequisites(p)
+if len(result)>0:
+    print("ERROR:...",result)
+    quit()

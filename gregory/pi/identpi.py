@@ -88,7 +88,7 @@ def get_fix_ip( name , ssid="drakula5" , desc=False, loc=False):
 
 
 def run_cmd(CMD):
-    print("x... running:",CMD)
+    if DEBUG:print("D... running:",CMD)
     R=sp.check_output( CMD.split() )
     return R.decode("utf8").rstrip()
 

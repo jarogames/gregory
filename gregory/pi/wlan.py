@@ -5,6 +5,7 @@
 #################################
 import subprocess as sp
 DEBUG=True
+DEBUG=False
 
 def get_wlans():
     CMD="/sbin/ifconfig"
