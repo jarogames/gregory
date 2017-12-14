@@ -2,9 +2,28 @@
 from gregory.pi import identpi
 from gregory.pi import wlan
 from gregory.pi import prerequisites as prq
+from gregory.pi import setmyservice as smys
+
 import subprocess as sp
 import os
 import argparse
+###############################################
+# 1. checks SSIDs current, availables
+# 2. checks who am i - hostname .....
+# 3. checks and installs prerequisites
+#---------------------------------------
+# 4. create swarm: zmq
+#    . list of functioning (CAMSON,TEMP,ALIVELIST,motion)
+#    . who is alive ?
+#    . fullfill tasks with myservice on/off ?
+#---------------------------------------
+#  . ? pgp signature verification ?
+#
+# HARDEN?
+# ufw firewall ?
+#https://www.digitalocean.com/community/questions/best-practices-for-hardening-new-sever-in-2017
+###############################################
+
 
 #####################################
 #  ARGUMENTS
@@ -70,7 +89,7 @@ with open( ftagname ,"w" ) as f:
 
 
 ########################################################
-#    now it is possible to do whatever,  **mydata** full
+#    install prerequisites with pip3
 ########################################################
 
 p=prq.check_prerequisites()
@@ -79,3 +98,8 @@ result=prq.install_prerequisites(p)
 if len(result)>0:
     print("ERROR:...",result)
     quit()
+    
+########################################################
+#    now it is possible to do whatever,  **mydata** is filled
+########################################################
+

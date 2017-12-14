@@ -29,6 +29,8 @@ packages['pyzmq']='! also aptitude install libzmq5 libczmq3'
 # packages['pexpect']='commandline child communication (ftp...)'
 # packages['Pillow']='python image lib, fork'
 # packages['svgwrite']='SVG drawing module'
+# packages['pyswarm']='particle swarm optimization w.constraints/pyswarms'
+# packages['']=''
 # packages['']=''
 # packages['']=''
 
