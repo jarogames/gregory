@@ -98,7 +98,12 @@ result=prq.install_prerequisites(p)
 if len(result)>0:
     print("ERROR:...",result)
     quit()
-    
+
+############################################################
+#  setmyservice :  perm, stop, restart (start?)
+############################################################
+smys.myservices( me[0] )
+
 ########################################################
 #    now it is possible to do whatever,  **mydata** is filled
 ########################################################

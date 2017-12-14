@@ -11,9 +11,13 @@ import os
 DEBUG=True
 DEBUG=False
 
+########## HERE SHOULD BE ALL ABOUT ME #####
 mydata={ "name":"", "ip":"" , "desc":""}
+
+# fixed IPs for predefined networks
 networks={ "drakula5":"192.168.0.",
-           "Lenovo PHAB2":"192.168.43."}
+           "Lenovo PHAB2":"192.168.43."
+          }
 
 pinames={ "pim":   10, 
           "_pi__1":11, 
@@ -24,7 +28,8 @@ pinames={ "pim":   10,
           "pix2":  16,
           "pix3":  17,
           "pix4":  18,
-          "edie":  117 }
+          "edie":  117
+}
 pidesc={ "pim":"mobile1", 
           "_pi__1":"------", 
           "pi4" :"KOSTEL2", 
@@ -47,6 +52,22 @@ pilocat={ "pim":"mobile",
           "pix4":"garden",
           "edie":"work"
 }
+
+# this should be run in update
+pi_myservice={ "pim": {}, 
+          "_pi__1":{}, 
+          "pi4":   {}, 
+          "pi3":   {}, 
+          "pib":   {},
+          "pix1":  {},
+          "pix2":  {},
+          "pix3":  {"CAMSON20":"perm"},
+          "pix4":  {},
+          "edie":  {"test":"start"}
+}
+
+
+
 
 def is_in_networks( ssid):
     return ssid in networks.keys()
