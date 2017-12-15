@@ -42,57 +42,32 @@ if args.show:
     identpi.showall()
     quit()
 
+
+identpi.initialize_mydata()
 ####################   find ssid ### GO THROUGH
-curssid=wlan.get_current_ssid( )
-ssidok=identpi.is_in_networks( curssid )
-print( "i... current ESSID   {:14s} is known?:     ... {}".format(curssid,ssidok) )
-allssids=wlan.get_visible_ssids()
-for x in allssids:
-    ssidok=identpi.is_in_networks( x )
-    print( "i... visible wifi    {:14s} is known?:     ... {}".format(x,ssidok) )
+# curssid=wlan.get_current_ssid( )
+# ssidok=identpi.is_in_networks( curssid )
+# print( "i... current ESSID   {:14s} is known?:     ... {}".format(curssid,ssidok) )
+# allssids=wlan.get_visible_ssids()
+# for x in allssids:
+#     ssidok=identpi.is_in_networks( x )
+#     print( "i... visible wifi    {:14s} is known?:     ... {}".format(x,ssidok) )
 
     
 ####################    ME #  FILL ALL # MAKE FILES ######
-me=identpi.whoami()  # must: fills mydata[]
-ip=identpi.get_fix_ip( me[0] , ssid="drakula5" )
-desc=identpi.get_fix_ip( me[0], desc=True )
-loca=identpi.get_fix_ip( me[0], loc=True )
-rpitype=identpi.rpi_type(me[3])
-print("I am ", me[0] )
-print("     IP         :", ip)
-print("     description:", desc)
-print("     location   :", loca)
-print("     memory MB   ", me[1] )
-print("     CPUs        ", me[2] )
-print("     revision    ", me[3] )
-print("     TYPE        ", rpitype )
+#me=identpi.whoami()  # must: fills mydata[]
+#ip=identpi.get_fix_ip( me[0] , ssid="drakula5" )
+#desc=identpi.get_fix_ip( me[0], desc=True )
+#loca=identpi.get_fix_ip( me[0], loc=True )
+#rpitype=identpi.rpi_type(me[3])
 
-ftagname=os.path.expanduser( "~/z1__"+me[0]+"__" )
-with open( ftagname ,"w" ) as f:
-    f.write( " ".join( str(me) ) )
-
-ftagname=os.path.expanduser( "~/z2__"+rpitype+"__" )
-with open( ftagname ,"w" ) as f:
-    f.write( " ".join( str(me) ) )
-
-ftagname=os.path.expanduser( "~/z3__"+ip+"__" )
-with open( ftagname ,"w" ) as f:
-    f.write( " ".join( str(me) ) )
-
-ftagname=os.path.expanduser( "~/z4__"+desc+"__" )
-with open( ftagname ,"w" ) as f:
-    f.write( " ".join( str(me) ) )
-
-ftagname=os.path.expanduser( "~/z5__"+loca+"__" )
-with open( ftagname ,"w" ) as f:
-    f.write( " ".join( str(me) ) )
 
 
 ########################################################
 #    install prerequisites with pip3
 ########################################################
 
-p=prq.check_prerequisites()
+p=prq.check_prerequisites()  # pip3 (--user) ;  apt ???
 print("i... Prerequisites needed:", p)
 result=prq.install_prerequisites(p)
 if len(result)>0:
@@ -102,9 +77,18 @@ if len(result)>0:
 ############################################################
 #  setmyservice :  perm, stop, restart (start?)
 ############################################################
-smys.myservices( me[0] )
+smys.myservices( identpi.mydata["name"] )
 
 ########################################################
 #    now it is possible to do whatever,  **mydata** is filled
 ########################################################
 
+
+
+
+#  BASICALY
+
+# 1.  check ESSID to switch (easier than from iwselect)
+# 2.  check others lives
+# 3.  wait for command
+# 4.  report (to all) - message instantiate, display

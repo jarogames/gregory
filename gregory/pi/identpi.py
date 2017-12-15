@@ -5,31 +5,84 @@
 #  IP for SSIDs  of internal/home networks
 #
 ####################################
+from gregory.pi import wlan
 import subprocess as sp
 import os
 
 DEBUG=True
-DEBUG=False
+#DEBUG=False
 
 ########## HERE SHOULD BE ALL ABOUT ME #####
-mydata={ "name":"", "ip":"" , "desc":""}
+# HOME NETWORK  drakula + ip
+# preffered network 1   + ip
+# preffered network 2   + ip
+mydata={ "name":"",
+         "ip":"" ,
+         "desc":"",
+         "loc":"",
+         "PiType":"",
+         "wlan_curr":""}
+
 
 # fixed IPs for predefined networks
-networks={ "drakula5":"192.168.0.",
-           "Lenovo PHAB2":"192.168.43."
-          }
+#networks={ "drakula5":"192.168.0.",
+#           "Lenovo PHAB2":"192.168.43."
+#          }
 
-pinames={ "pim":   10, 
-          "_pi__1":11, 
-          "pi4":   12, 
-          "pi3":   13, 
-          "pib":   14,
-          "pix1":  15,
-          "pix2":  16,
-          "pix3":  17,
-          "pix4":  18,
-          "edie":  117
+
+
+pinames={ "pim":   "10", 
+          "_pi__1":"11", 
+          "pi4":   "12", 
+          "pi3":   "13", 
+          "pib":   "14",
+          "pix1":  "15",
+          "pix2":  "16",
+          "pix3":  "17",
+          "pix4":  "18",
+          "edie":  "117"
 }
+
+homessid="drakula5"
+pi_home_ssid={ "pim":   [homessid,"192.168.0."+pinames["pim"]], 
+               "_pi__1":[homessid,"192.168.0."+pinames["_pi__1"]],
+               "pi4":   [homessid,"192.168.0."+pinames["pi4"]],
+               "pi3":   [homessid,"192.168.0."+pinames["pi3"]], 
+               "pib":   [homessid,"192.168.0."+pinames["pib"]],
+               "pix1":  [homessid,"192.168.0."+pinames["pix1"]],
+               "pix2":  [homessid,"192.168.0."+pinames["pix2"]],
+               "pix3":  [homessid,"192.168.0."+pinames["pix3"]],
+               "pix4":  [homessid,"192.168.0."+pinames["pix4"]],
+               "edie":  [homessid,"192.168.0."+pinames["edie"]]   
+}
+
+prefssid1="Lenovo PHAB2"
+pi_pref1_ssid={ "pim":   {prefssid1:"192.168.43."+pinames["pim"]},   
+               "_pi__1":{prefssid1:"192.168.43."+pinames["_pi__1"]},
+               "pi4":   {prefssid1:"192.168.43."+pinames["pi4"]},   
+               "pi3":   {},
+               "pib":   {},
+               "pix1":  {},
+               "pix2":  {},
+               "pix3":  {prefssid1:"192.168.43."+pinames["pix3"]},  
+               "pix4":  {prefssid1:"192.168.43."+pinames["pix4"]},  
+               "edie":  {prefssid1:"192.168.43."+pinames["edie"]}   
+}
+
+prefssid2="jerg_hack"
+pi_pref2_ssid={ "pim":   {prefssid2:"192.168.43."+pinames["pim"]},   
+               "_pi__1":{prefssid2:"192.168.43."+pinames["_pi__1"]},
+               "pi4":   {prefssid2:"192.168.43."+pinames["pi4"]},   
+               "pi3":   {},
+               "pib":   {},
+               "pix1":  {},
+               "pix2":  {},
+               "pix3":  {prefssid2:"192.168.43."+pinames["pix3"]},  
+               "pix4":  {prefssid2:"192.168.43."+pinames["pix4"]},  
+               "edie":  {prefssid2:"192.168.43."+pinames["edie"]}   
+}
+
+
 pidesc={ "pim":"mobile1", 
           "_pi__1":"------", 
           "pi4" :"KOSTEL2", 
@@ -69,8 +122,8 @@ pi_myservice={ "pim": {},
 
 
 
-def is_in_networks( ssid):
-    return ssid in networks.keys()
+#def is_in_networks( ssid):
+#    return ssid in networks.keys()
 
 def get_pinames(pi):
     return pinames[pi]
@@ -79,32 +132,31 @@ def get_pidesc(pi):
 def get_pilocat(pi):
     return pilocat[pi]
 
-def ident_fill_n_write():
-    print("i... it's me, ident")
-    return 0
+#def ident_fill_n_write():
+#    print("i... it's me, ident")
+#    return 0
 
-def get_fix_ip( name , ssid="drakula5" , desc=False, loc=False):
-    #print("i... get ip",name,"@",ssid)
-    if desc==False and loc==False:
-        #print("DEBUG2... ",  ssid, name )
-        if name in pinames.keys():
-            if DEBUG:print("DEBUG3... ",  ssid )
-            if ssid in networks:
-                prefix=networks[ssid]
-            else:
-                prefix="192.168.0."
-            mydata["ip"]=prefix+str( pinames[name] )
-            return mydata["ip"]
-        return "unassigned"
+def get_desc( name ):
+    if name in pidesc.keys():
+        return pidesc[name]
+    return "unknown"
+
+def get_loc( name ):
+    if name in pilocat.keys():
+        return pilocat[name]
+    return "somewhere"
+
+
+
+def get_fix_ip( name , ssid="drakula5" ):
+    if DEBUG:print("i... get ip",name,"@ /",ssid,"/")
+    #print("DEBUG2... ",  ssid, name )
+    if name in pi_home_ssid.keys():
+        if DEBUG:print("DEBUG3... ",  ssid, pi_home_ssid[name] )
+        if ssid==pi_home_ssid[name][0]: # is ssid
+            return pi_home_ssid[name][1]
+    return "unassigned"
     #==========
-    if desc:
-        if name in pidesc.keys():
-            return pidesc[name]
-        return "unknown"
-    if loc:
-        if name in pilocat.keys():
-            return pilocat[name]
-        return "somewhere"
 
 
 
@@ -152,7 +204,61 @@ def rpi_type( rev ):
 #        if 1==2: return "pi3B"
 
 
+
+
+
+
+
+
+
+def write_z_file( num, text ):
+    ftagname=os.path.expanduser( "~/z"+str(num)+"__"+text+"__" )
+    with open( ftagname ,"w" ) as f:
+        f.write( text )
+
+def initialize_mydata():
+    print("i... initialization mydata ...")
+    ################################ NOW WLAN  ########
+    curssid=wlan.get_current_ssid( )
+    mydata["wlan_curr"]=curssid  # MYDATA
+    #ssidok=is_in_networks( curssid )
+    #print( "i... current ESSID   {:14s} is known?:     ... [{}]".format(curssid,ssidok) )
+    allssids=wlan.get_visible_ssids()
+    for x in allssids:
+        print("   ",x)
+        #ssidok=is_in_networks( x )
+        #print( "i... visible wifi    {:14s} is known?:     ... [{}]".format(x,ssidok) )
+    ################################ NOW ID ##########
+    me=whoami()  # must: fills mydata[]
+    #ip=get_fix_ip( me[0] , ssid="drakula5" )
+    mydata["name"]=me[0]
+    mydata["ip"]=get_fix_ip( me[0],  ssid=mydata["wlan_curr"] )
+    mydata["desc"]=get_desc( me[0])
+    mydata["loc"]=get_loc(me[0] )
+    mydata["PiType"]=rpi_type(me[3])
+    print("I am ",  mydata["name"] )
+    print("     IP         :", mydata["ip"])
+    print("     OnWlan     :", mydata["wlan_curr"])
+    print("     description:", mydata["desc"])
+    print("     location   :", mydata["loc"])
+    print("     memory MB   ", me[1] )
+    print("     CPUs        ", me[2] )
+    print("     revision    ", me[3] )
+    print("     TYPE        ", mydata["PiType"] )
+    
+    write_z_file( 1, mydata["name"])
+    write_z_file( 2, mydata["PiType"])
+    #write_z_file( 3, mydata["name"]) # ipzero?
+    write_z_file( 4, mydata["desc"])
+    write_z_file( 5, mydata["loc"])
+
+
+
+    
 def showall():
     print("i... showing all")
     for i in sorted( pinames.keys() , key=pinames.get ):
         print( "{:8s} {}  {:14s} ... {}".format( i, pinames[i], pidesc[i], pilocat[i] ) )
+
+
+        

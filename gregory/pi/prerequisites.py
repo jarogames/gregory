@@ -38,7 +38,7 @@ packages['pyzmq']='! also aptitude install libzmq5 libczmq3'
 
 def check_prerequisites():
     if DEBUG:print("i... Prerequisites:")
-    CMD="pip3 list"
+    CMD="pip3 list --format=legacy"
     all=sp.check_output( CMD.split() ).decode("utf8").rstrip().split("\n")
     #print(all)
     all=[ x.split()[0] for x in all ]
