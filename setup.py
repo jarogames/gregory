@@ -69,7 +69,7 @@ setup(
     url = "",
     #package_dir = {'': 'mymod'},
     py_modules=['mymod'],
-    packages=['gregory.mymod','gregory','gregory.gps','gregory.pi'],
+    packages=['gregory.mymod','gregory','gregory.gps','gregory.pi','gregory.pi'],
     scripts=['bin/gps.py','bin/keypress.py','bin/pureborg.py','bin/pigory.py'],
     package_data={'':extra_files},  # this I did with NuPhyPy ... [ok]
     long_description=read('README.md'),
