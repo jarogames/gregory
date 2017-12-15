@@ -5,11 +5,18 @@ gpg --list-keys
 
 echo ============================= SIGN
 
-
 gpg --armor --detach-sig pigory.py
 
 echo ============================= VERIFY
+# if you created
+# or have installed the public key
+# via
+# gpg --import pubkey.txt
 
-gpg --verify pigory.py.asc   pigory.py
+
+gpg --verify pigory.py.asc  pigory.py
 
 echo ============================= DONE
+
+#echo EXPORT PUBLIC KEY
+#gpg --armor --export user@mail.com > pubkey.txt
