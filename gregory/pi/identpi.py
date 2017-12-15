@@ -40,7 +40,7 @@ pinames={ "pim":   "10",
           "pix2":  "16",
           "pix3":  "17",
           "pix4":  "18",
-          "edie":  "117"
+          "fedo":  "117"
 }
 
 homessid="drakula5"
@@ -53,7 +53,7 @@ pi_home_ssid={ "pim":   [homessid,"192.168.0."+pinames["pim"]],
                "pix2":  [homessid,"192.168.0."+pinames["pix2"]],
                "pix3":  [homessid,"192.168.0."+pinames["pix3"]],
                "pix4":  [homessid,"192.168.0."+pinames["pix4"]],
-               "edie":  [homessid,"192.168.0."+pinames["edie"]]   
+               "fedo":  [homessid,"192.168.0."+pinames["fedo"]]
 }
 
 prefssid1="Lenovo PHAB2"
@@ -66,8 +66,9 @@ pi_pref1_ssid={ "pim":  [prefssid1,"192.168.43."+pinames["pim"]],
                "pix2":  [],
                "pix3":  [prefssid1,"192.168.43."+pinames["pix3"]],  
                "pix4":  [prefssid1,"192.168.43."+pinames["pix4"]],  
-               "edie":  [prefssid1,"192.168.43."+pinames["edie"]]   
+               "fedo":  []
 }
+
 
 prefssid2="jerg_hack"
 pi_pref2_ssid={ "pim":  [prefssid2,"192.168.43."+pinames["pim"]],   
@@ -79,7 +80,7 @@ pi_pref2_ssid={ "pim":  [prefssid2,"192.168.43."+pinames["pim"]],
                "pix2":  [],
                "pix3":  [prefssid2,"192.168.43."+pinames["pix3"]],  
                "pix4":  [prefssid2,"192.168.43."+pinames["pix4"]],  
-               "edie":  [prefssid2,"192.168.43."+pinames["edie"]]
+               "fedo":  []
 }
 
 
@@ -92,8 +93,10 @@ pidesc={ "pim":"mobile1",
           "pix2":"VOICE",
           "pix3":"MOBILE_CAM_2" ,
           "pix4":"SOLAR_PANEL" ,
-          "edie":"ntb"
+          "fedo":"gigabyte"
 }
+
+
 pilocat={ "pim":"mobile", 
           "_pi__1":"------", 
           "pi4" :"kostel2", 
@@ -103,7 +106,7 @@ pilocat={ "pim":"mobile",
           "pix2":"kitchen",
           "pix3":"MOBILE_CAM_2" ,
           "pix4":"garden",
-          "edie":"work"
+          "fedo":"home"
 }
 
 # this should be run in update
@@ -116,8 +119,9 @@ pi_myservice={ "pim": {},
           "pix2":  {},
           "pix3":  {"CAMSON20":"perm"},
           "pix4":  {},
-          "edie":  {"test":"start"}
+          "fedo":  {"test":"start"}
 }
+
 
 
 
@@ -220,7 +224,7 @@ def initialize_mydata():
     print("i... initialization mydata ...")
     ################################ NOW WLAN  ########
     curssid=wlan.get_current_ssid( )
-    mydata["wlan_curr"]=curssid  # MYDATA
+    mydata["wlan_curr"]=curssid      # MYDATA
     ################################ NOW ID ##########
     me=whoami()  # must: fills mydata[]
     #ip=get_fix_ip( me[0] , ssid="drakula5" )
@@ -238,14 +242,14 @@ def initialize_mydata():
     print("     CPUs        ", me[2] )
     print("     revision    ", me[3] )
     print("     TYPE        ", mydata["PiType"] )
-    
+    if not me[0] in pinames:return False
     write_z_file( 1, mydata["name"])
     write_z_file( 2, mydata["PiType"])
     #write_z_file( 3, mydata["name"]) # ipzero?
     write_z_file( 4, mydata["desc"])
     write_z_file( 5, mydata["loc"])
 
-
+    return True
 
     
 def showall():

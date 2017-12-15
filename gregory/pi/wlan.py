@@ -59,9 +59,13 @@ def iwselect(x):
 
 def test_ssid_priorities():
     currssid=identpi.mydata["wlan_curr"]
+    print("---------- currssid---------------",currssid)
     homessid=identpi.pi_home_ssid[ identpi.mydata["name"] ]
+    print("---------- home ssid---------------",homessid)
     pref1=identpi.pi_pref1_ssid[ identpi.mydata["name"] ]
+    print("---------- pref1 ssid---------------",homessid)
     pref2=identpi.pi_pref2_ssid[ identpi.mydata["name"] ]
+    print("---------- pref2 ssid---------------",homessid)
     print("i... === priorities in ESSID:\n   1.",
           pref1,"\n   2.",pref2,"\n   H.",homessid,"\n   C.",currssid)
     if currssid==homessid:

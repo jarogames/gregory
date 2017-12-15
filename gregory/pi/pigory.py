@@ -43,26 +43,13 @@ if args.show:
     quit()
 
 
-identpi.initialize_mydata()
-####################   find ssid ### GO THROUGH
-# curssid=wlan.get_current_ssid( )
-# ssidok=identpi.is_in_networks( curssid )
-# print( "i... current ESSID   {:14s} is known?:     ... {}".format(curssid,ssidok) )
-# allssids=wlan.get_visible_ssids()
-# for x in allssids:
-#     ssidok=identpi.is_in_networks( x )
-#     print( "i... visible wifi    {:14s} is known?:     ... {}".format(x,ssidok) )
-
-    
-####################    ME #  FILL ALL # MAKE FILES ######
-#me=identpi.whoami()  # must: fills mydata[]
-#ip=identpi.get_fix_ip( me[0] , ssid="drakula5" )
-#desc=identpi.get_fix_ip( me[0], desc=True )
-#loca=identpi.get_fix_ip( me[0], loc=True )
-#rpitype=identpi.rpi_type(me[3])
-
+print("==============INIT MYDATA=========================")
+if not identpi.initialize_mydata():
+    print("!... NOT IN LIST, quitting ...................")
+    quit()
+print("==============WLAN TEST=========================")
 wlan.test_ssid_priorities()
-quit()
+
 ########################################################
 #    install prerequisites with pip3
 ########################################################
@@ -82,7 +69,6 @@ smys.myservices( identpi.mydata["name"] )
 ########################################################
 #    now it is possible to do whatever,  **mydata** is filled
 ########################################################
-
 
 
 
