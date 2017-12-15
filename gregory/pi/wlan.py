@@ -4,11 +4,22 @@
 #    - find SSID of wlan
 #################################
 import subprocess as sp
-from gregory.pi import identpi
+#from gregory.pi import config
+from gregory.pi.config import mydata,pi_home_ssid,pidesc,pilocat,pinames,pi_pref1_ssid,pi_pref2_ssid
+
+# I cannot cross ##from gregory.pi.identpi import run_cmd
+
 import time
 
 DEBUG=True
 #DEBUG=False
+
+def run_cmd(CMD):
+    if DEBUG:print("D... running:",CMD)
+    R=sp.check_output( CMD.split() )
+    return R.decode("utf8").rstrip()
+
+
 
 def get_wlans():
     if DEBUG:print("F--- get wlans: -----------------")
@@ -60,7 +71,7 @@ def get_current_ssid():
 
 def iwselect(x , ip ):
     if DEBUG:print("F--- iwselect ",x,"ip=",ip," --------------")
-    currssid=identpi.mydata["wlan_curr"]
+    currssid=mydata["wlan_curr"]
     if currssid!=x:
         print("i... CONNecting to ",x,"WIFI")
         passfile="/etc/wpa_supplicant/"+x+".conf"
@@ -70,15 +81,15 @@ def iwselect(x , ip ):
             return
         ####### MUST BE ON RPI ###########
         CMD="sudo kill wpa_supplicant"
-        identpi.run_cmd( CMD )
+        run_cmd( CMD )
         CMD="sudo ifdown wlan"
-        identpi.run_cmd( CMD )
+        run_cmd( CMD )
         CMD='sudo wpa_supplicant -Dwext -wlan0 -c "'+passfile+'"'
         time.sleep(3)
         CMD="sudo ifup wlan0"
-        identpi.run_cmd( CMD )
+        run_cmd( CMD )
         CMD="sudo ifconfig wlan0 "+ip+" up"
-        identpi.run_cmd( CMD )
+        run_cmd( CMD )
     else:
         print("i... ALREADY ON",x,"wifi")
 
@@ -88,13 +99,13 @@ def iwselect(x , ip ):
     
 def test_ssid_priorities():
     if DEBUG:print("F--- test_ssid_priorities --------------")
-    currssid=identpi.mydata["wlan_curr"]
+    currssid=mydata["wlan_curr"]
     if DEBUG:print("---------- currssid---------------",currssid)
-    homessid=identpi.pi_home_ssid[ identpi.mydata["name"] ]
+    homessid=pi_home_ssid[ mydata["name"] ]
     if DEBUG:print(".... home ssid  ",homessid)
-    pref1=identpi.pi_pref1_ssid[ identpi.mydata["name"] ]
+    pref1=pi_pref1_ssid[ mydata["name"] ]
     if DEBUG:print(".... pref1 ssid ",pref1)
-    pref2=identpi.pi_pref2_ssid[ identpi.mydata["name"] ]
+    pref2=pi_pref2_ssid[ mydata["name"] ]
     if DEBUG:print(".... pref2 ssid ",pref2)
     print("i... === priorities in ESSID:\n   1.",
           pref1,"\n   2.",pref2,"\n   H.",homessid,"\n   C.",currssid)
