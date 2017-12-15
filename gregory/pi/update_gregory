@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# git get
+cd ~/02_GIT/gregory
+git pull origin master
+if [ "$?" != "0" ];then
+   sleep 3600
+   exit;
+fi
+git pull origin master --tags
+
+
+python3 setup.py install --user
+echo sleeping 1 minute....
+sleep 60
+
+gpg --verify ~/02_GIT/ALL/gregory/gregory/pi/pigory.py.asc  ~/02_GIT/ALL/gregory/gregory/pi/pigory.py
+if [ "$?" == "0" ]; then
+  echo KEY OK - i need to import the public key
+fi
+~/.local/bin/pigory.py
+echo sleeping 1 hour
+sleep 3600
