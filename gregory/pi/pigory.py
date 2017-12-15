@@ -61,8 +61,8 @@ identpi.initialize_mydata()
 #loca=identpi.get_fix_ip( me[0], loc=True )
 #rpitype=identpi.rpi_type(me[3])
 
-
-
+wlan.test_ssid_priorities()
+quit()
 ########################################################
 #    install prerequisites with pip3
 ########################################################

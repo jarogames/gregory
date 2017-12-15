@@ -57,29 +57,29 @@ pi_home_ssid={ "pim":   [homessid,"192.168.0."+pinames["pim"]],
 }
 
 prefssid1="Lenovo PHAB2"
-pi_pref1_ssid={ "pim":   {prefssid1:"192.168.43."+pinames["pim"]},   
-               "_pi__1":{prefssid1:"192.168.43."+pinames["_pi__1"]},
-               "pi4":   {prefssid1:"192.168.43."+pinames["pi4"]},   
-               "pi3":   {},
-               "pib":   {},
-               "pix1":  {},
-               "pix2":  {},
-               "pix3":  {prefssid1:"192.168.43."+pinames["pix3"]},  
-               "pix4":  {prefssid1:"192.168.43."+pinames["pix4"]},  
-               "edie":  {prefssid1:"192.168.43."+pinames["edie"]}   
+pi_pref1_ssid={ "pim":  [prefssid1,"192.168.43."+pinames["pim"]],  
+               "_pi__1":[prefssid1,"192.168.43."+pinames["_pi__1"]],
+               "pi4":   [prefssid1,"192.168.43."+pinames["pi4"]],
+               "pi3":   [],
+               "pib":   [],
+               "pix1":  [],
+               "pix2":  [],
+               "pix3":  [prefssid1,"192.168.43."+pinames["pix3"]],  
+               "pix4":  [prefssid1,"192.168.43."+pinames["pix4"]],  
+               "edie":  [prefssid1,"192.168.43."+pinames["edie"]]   
 }
 
 prefssid2="jerg_hack"
-pi_pref2_ssid={ "pim":   {prefssid2:"192.168.43."+pinames["pim"]},   
-               "_pi__1":{prefssid2:"192.168.43."+pinames["_pi__1"]},
-               "pi4":   {prefssid2:"192.168.43."+pinames["pi4"]},   
-               "pi3":   {},
-               "pib":   {},
-               "pix1":  {},
-               "pix2":  {},
-               "pix3":  {prefssid2:"192.168.43."+pinames["pix3"]},  
-               "pix4":  {prefssid2:"192.168.43."+pinames["pix4"]},  
-               "edie":  {prefssid2:"192.168.43."+pinames["edie"]}   
+pi_pref2_ssid={ "pim":  [prefssid2,"192.168.43."+pinames["pim"]],   
+               "_pi__1":[prefssid2,"192.168.43."+pinames["_pi__1"]],
+               "pi4":   [prefssid2,"192.168.43."+pinames["pi4"]],
+               "pi3":   [],
+               "pib":   [],
+               "pix1":  [],
+               "pix2":  [],
+               "pix3":  [prefssid2,"192.168.43."+pinames["pix3"]],  
+               "pix4":  [prefssid2,"192.168.43."+pinames["pix4"]],  
+               "edie":  [prefssid2,"192.168.43."+pinames["edie"]]
 }
 
 
@@ -152,10 +152,10 @@ def get_fix_ip( name , ssid="drakula5" ):
     if DEBUG:print("i... get ip",name,"@ /",ssid,"/")
     #print("DEBUG2... ",  ssid, name )
     if name in pi_home_ssid.keys():
-        if DEBUG:print("DEBUG3... ",  ssid, pi_home_ssid[name] )
+        if DEBUG:print("DEBUG3... ",ssid,";home=",pi_home_ssid[name])
         if ssid==pi_home_ssid[name][0]: # is ssid
             return pi_home_ssid[name][1]
-    return "unassigned"
+    return "unavailable"
     #==========
 
 
@@ -221,18 +221,11 @@ def initialize_mydata():
     ################################ NOW WLAN  ########
     curssid=wlan.get_current_ssid( )
     mydata["wlan_curr"]=curssid  # MYDATA
-    #ssidok=is_in_networks( curssid )
-    #print( "i... current ESSID   {:14s} is known?:     ... [{}]".format(curssid,ssidok) )
-    allssids=wlan.get_visible_ssids()
-    for x in allssids:
-        print("   ",x)
-        #ssidok=is_in_networks( x )
-        #print( "i... visible wifi    {:14s} is known?:     ... [{}]".format(x,ssidok) )
     ################################ NOW ID ##########
     me=whoami()  # must: fills mydata[]
     #ip=get_fix_ip( me[0] , ssid="drakula5" )
     mydata["name"]=me[0]
-    mydata["ip"]=get_fix_ip( me[0],  ssid=mydata["wlan_curr"] )
+    mydata["ip"]=get_fix_ip( me[0], ssid=mydata["wlan_curr"] )
     mydata["desc"]=get_desc( me[0])
     mydata["loc"]=get_loc(me[0] )
     mydata["PiType"]=rpi_type(me[3])
