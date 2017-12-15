@@ -8,6 +8,7 @@ DEBUG=True
 
 # this is independent on network ...
 def myservices( me ):
+    print("F--- MYSERVICE ---------------------------")
     mydict=identpi.pi_myservice[ me ]
     if DEBUG: print("i... myservices for", me, mydict )
     for k,v in mydict.items():

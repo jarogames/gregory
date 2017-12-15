@@ -67,6 +67,7 @@ pi_pref1_ssid={ "pim":  [prefssid1,"192.168.43."+pinames["pim"]],
                "pix3":  [prefssid1,"192.168.43."+pinames["pix3"]],  
                "pix4":  [prefssid1,"192.168.43."+pinames["pix4"]],  
                "fedo":  []
+#               "fedo":  ["Magor","192.168.0.111"]
 }
 
 

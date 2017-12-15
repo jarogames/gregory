@@ -5,11 +5,13 @@
 #################################
 import subprocess as sp
 from gregory.pi import identpi
+import time
 
 DEBUG=True
-DEBUG=False
+#DEBUG=False
 
 def get_wlans():
+    if DEBUG:print("F--- get wlans: -----------------")
     CMD="/sbin/ifconfig"
     ifcon=sp.check_output( CMD ).decode("utf8").split("\n")
     wlans=[ x for x in ifcon if x.find("Link encap:Ethernet")>0 ]
@@ -18,10 +20,11 @@ def get_wlans():
     return wlans
 
 def eliminate_wlans():
-    print("???????????")
+    if DEBUG:print("eliminate ???????????")
     return
 
 def get_visible_ssids():
+    if DEBUG:print("F--- get visible eesids: ------------")
     wlans=get_wlans()
     if len(wlans)>1:
         eliminate_wlan0() # only one wlan iface available
@@ -30,11 +33,15 @@ def get_visible_ssids():
     iwcon=sp.check_output( CMD.split() ).decode("utf8").split("\n")
     essids=[x for x in iwcon if x.find("ESSID:")>0]
     essids=[x.split(":")[-1].strip('"') for x in essids]
-    if DEBUG:print("DEBUG... visible essids: ",essids)
+    #if DEBUG:print("DEBUG... visible essids: ",essids)
+    if DEBUG:
+        print("i... get visible eesids:" , end="")
+        print(essids)
     return essids
     
 
 def get_current_ssid():
+    if DEBUG:print("F--- get current ssid  ----------------")
     wlans=get_wlans()
     if len(wlans)>1:
         eliminate_wlan0() # only one wlan iface available
@@ -49,23 +56,46 @@ def get_current_ssid():
     return essid
 
 
-def iwselect(x):
+
+
+def iwselect(x , ip ):
+    if DEBUG:print("F--- iwselect ",x,"ip=",ip," --------------")
     currssid=identpi.mydata["wlan_curr"]
     if currssid!=x:
         print("i... CONNecting to ",x,"WIFI")
+        passfile="/etc/wpa_supplicant/"+x+".conf"
+        print("i... checking ",passfile)
+        if not os.path.isfile( passfile ):
+            print("!... NO ",passfile,"  ... returns")
+            return
+        ####### MUST BE ON RPI ###########
+        CMD="sudo kill wpa_supplicant"
+        identpi.run_cmd( CMD )
+        CMD="sudo ifdown wlan"
+        identpi.run_cmd( CMD )
+        CMD='sudo wpa_supplicant -Dwext -wlan0 -c "'+passfile+'"'
+        time.sleep(3)
+        CMD="sudo ifup wlan0"
+        identpi.run_cmd( CMD )
+        CMD="sudo ifconfig wlan0 "+ip+" up"
+        identpi.run_cmd( CMD )
     else:
         print("i... ALREADY ON",x,"wifi")
 
 
+
+
+    
 def test_ssid_priorities():
+    if DEBUG:print("F--- test_ssid_priorities --------------")
     currssid=identpi.mydata["wlan_curr"]
-    print("---------- currssid---------------",currssid)
+    if DEBUG:print("---------- currssid---------------",currssid)
     homessid=identpi.pi_home_ssid[ identpi.mydata["name"] ]
-    print("---------- home ssid---------------",homessid)
+    if DEBUG:print(".... home ssid  ",homessid)
     pref1=identpi.pi_pref1_ssid[ identpi.mydata["name"] ]
-    print("---------- pref1 ssid---------------",homessid)
+    if DEBUG:print(".... pref1 ssid ",pref1)
     pref2=identpi.pi_pref2_ssid[ identpi.mydata["name"] ]
-    print("---------- pref2 ssid---------------",homessid)
+    if DEBUG:print(".... pref2 ssid ",pref2)
     print("i... === priorities in ESSID:\n   1.",
           pref1,"\n   2.",pref2,"\n   H.",homessid,"\n   C.",currssid)
     if currssid==homessid:
@@ -73,22 +103,24 @@ def test_ssid_priorities():
     else:
         print("i... NOT on home essid")
     allssids=get_visible_ssids()
-    con=0
+    connect_to=""
+    connect_ip=""
+    print("s...  searching in ",allssids )
     for x in allssids:
-        print("   ",x)
-        if pref1==x:
-            print("i... Pref1 seen:",x)
-            iwselect(x)
-            con=con+1
-            break
-        if pref2==x:
-            print("i... Pref2 seen:",x)
-            iwselect(x)
-            con=con+1
-            break
-        if homessid==x:
+        if len(homessid)>0 and homessid[0]==x:
             print("i... Home seen:",x)
-            iwselect(x)
-            con=con+1
-            break
-    if con==0:print("!... NO Connection was available")
+            connect_to=x
+            connect_ip=homessid[1]
+    for x in allssids:
+        if len(pref2)>0 and pref2[0]==x:
+            print("i... Pref2 seen:",x)
+            connect_to=x
+            connect_ip=pref2[1]
+    for x in allssids:
+        if len(pref1)>0 and pref1[0]==x:
+            print("i... Pref1 seen:",x)
+            connect_to=x
+            connect_ip=pref1[1]
+    iwselect( connect_to , connect_ip)
+    
+    if connect_to=="":print("!... NO Connection was available")
