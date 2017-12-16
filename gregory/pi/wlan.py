@@ -3,6 +3,7 @@
 #  WLAN RELATED FUNCTIONS:
 #    - find SSID of wlan
 #################################
+import os
 import subprocess as sp
 #from gregory.pi import config
 from gregory.pi.config import mydata,pi_home_ssid,pidesc,pilocat,pinames,pi_pref1_ssid,pi_pref2_ssid
