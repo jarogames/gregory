@@ -26,7 +26,8 @@ pinames={ "pim":   "10",
           "pix2":  "16",
           "pix3":  "17",
           "pix4":  "18",
-          "fedo":  "117"
+          "fedo":  "117",
+          "celer": "20"
 }
 
 homessid="drakula5"
@@ -39,6 +40,7 @@ pi_home_ssid={ "pim":   [homessid,"192.168.0."+pinames["pim"]],
                "pix2":  [homessid,"192.168.0."+pinames["pix2"]],
                "pix3":  [homessid,"192.168.0."+pinames["pix3"]],
                "pix4":  [homessid,"192.168.0."+pinames["pix4"]],
+               "celer":  [homessid,"192.168.0."+pinames["celer"]],
                "fedo":  [homessid,"192.168.0."+pinames["fedo"]]
 }
 
@@ -52,6 +54,7 @@ pi_pref1_ssid={ "pim":  [prefssid1,"192.168.43."+pinames["pim"]],
                "pix2":  [],
                "pix3":  [prefssid1,"192.168.43."+pinames["pix3"]],  
                "pix4":  [prefssid1,"192.168.43."+pinames["pix4"]],  
+               "celer":  [],  
                "fedo":  []
 #               "fedo":  ["Magor","192.168.0.111"]
 }
@@ -67,6 +70,7 @@ pi_pref2_ssid={ "pim":  [prefssid2,"192.168.43."+pinames["pim"]],
                "pix2":  [],
                "pix3":  [prefssid2,"192.168.43."+pinames["pix3"]],  
                "pix4":  [prefssid2,"192.168.43."+pinames["pix4"]],  
+               "celer":  [],  
                "fedo":  []
 }
 
@@ -80,6 +84,7 @@ pidesc={ "pim":"mobile1",
           "pix2":"VOICE",
           "pix3":"MOBILE_CAM_2" ,
           "pix4":"SOLAR_PANEL" ,
+          "celer":"CELERON" ,
           "fedo":"gigabyte"
 }
 
@@ -93,6 +98,7 @@ pilocat={ "pim":"mobile",
           "pix2":"kitchen",
           "pix3":"MOBILE_CAM_2" ,
           "pix4":"garden",
+          "celer":"TechnickaMistnost",
           "fedo":"home"
 }
 
@@ -106,6 +112,7 @@ pi_myservice={ "pim": {},
           "pix2":  {},
           "pix3":  {"CAMSON20":"perm"},
           "pix4":  {},
+          "celer":  {},
           "fedo":  {"test":"start"}
 }
 

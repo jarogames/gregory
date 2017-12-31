@@ -26,7 +26,9 @@ def get_wlans():
     if DEBUG:print("F--- get wlans: -----------------")
     CMD="/sbin/ifconfig"
     ifcon=sp.check_output( CMD ).decode("utf8").split("\n")
-    wlans=[ x for x in ifcon if x.find("Link encap:Ethernet")>0 ]
+    #This didnt work on debian (flags=4163<UP....)
+    #wlans=[ x for x in ifcon if x.find("Link encap:Ethernet")>0 ]
+    wlans=[ x for x in ifcon if x.find("w")==0 ]
     #if DEBUG: print("DEBUG... wlans", wlans)
     wlans=[ x.split()[0] for x in wlans if x[0]=="w" ] # ONLY WIFI
     return wlans
