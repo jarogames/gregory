@@ -60,6 +60,9 @@ def get_current_ssid():
     if len(wlans)>1:
         eliminate_wlan0() # only one wlan iface available
         wlans=get_wlans()
+    else:
+        print("!... NO WIRELESS, NO AUTO CHANGES")
+        return None
     CMD="/sbin/iwconfig "+wlans[0]
     iwcon=sp.check_output( CMD.split() ).decode("utf8").split("\n")
     if DEBUG:print("DEBUG... current essid1="+iwcon[0])

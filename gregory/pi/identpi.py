@@ -61,7 +61,7 @@ def run_cmd(CMD):
     return R.decode("utf8").rstrip()
 
 def whoami():
-    print("i... who am i : ")
+    print("i... who am i -------------------------- ")
     hname=run_cmd("hostname")
     mydata["name"]=hname
     
