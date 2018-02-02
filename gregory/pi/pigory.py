@@ -4,6 +4,11 @@ from gregory.pi import wlan
 from gregory.pi import prerequisites as prq
 from gregory.pi import setmyservice as smys
 
+# SDDISK:
+# http://www.pidramble.com/wiki/benchmarks/microsd-cards
+# http://www.pidramble.com/wiki/benchmarks/microsd-cards
+
+
 import subprocess as sp
 import os
 import argparse

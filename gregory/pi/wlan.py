@@ -3,6 +3,7 @@
 #  WLAN RELATED FUNCTIONS:
 #    - find SSID of wlan
 #################################
+import os
 import subprocess as sp
 #from gregory.pi import config
 from gregory.pi.config import mydata,pi_home_ssid,pidesc,pilocat,pinames,pi_pref1_ssid,pi_pref2_ssid
@@ -25,7 +26,9 @@ def get_wlans():
     if DEBUG:print("F--- get wlans: -----------------")
     CMD="/sbin/ifconfig"
     ifcon=sp.check_output( CMD ).decode("utf8").split("\n")
-    wlans=[ x for x in ifcon if x.find("Link encap:Ethernet")>0 ]
+    #This didnt work on debian (flags=4163<UP....)
+    #wlans=[ x for x in ifcon if x.find("Link encap:Ethernet")>0 ]
+    wlans=[ x for x in ifcon if x.find("w")==0 ]
     #if DEBUG: print("DEBUG... wlans", wlans)
     wlans=[ x.split()[0] for x in wlans if x[0]=="w" ] # ONLY WIFI
     return wlans
@@ -57,6 +60,9 @@ def get_current_ssid():
     if len(wlans)>1:
         eliminate_wlan0() # only one wlan iface available
         wlans=get_wlans()
+    else:
+        print("!... NO WIRELESS, NO AUTO CHANGES")
+        return None
     CMD="/sbin/iwconfig "+wlans[0]
     iwcon=sp.check_output( CMD.split() ).decode("utf8").split("\n")
     if DEBUG:print("DEBUG... current essid1="+iwcon[0])

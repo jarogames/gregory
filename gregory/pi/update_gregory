@@ -1,23 +1,32 @@
 #!/bin/bash
 
+GREG_DIR=~/02_GIT/gregory
+if [ "$HOST" = "fedo" ]; then
+   GREG_DIR=~/02_GIT/ALL/gregory
+fi
+
 # git get
-cd ~/02_GIT/gregory
+cd $GREG_DIR
 git pull origin master
 if [ "$?" != "0" ];then
+    echo !... PROBLEM. sleep 1 h
    sleep 3600
    exit;
 fi
 git pull origin master --tags
 
-
+echo i.... INSTALLING NEW VERSION PIGREG
 python3 setup.py install --user
-echo sleeping 1 minute....
-sleep 60
+echo sleeping 10 seconds....
+sleep 10
 
-gpg --verify ~/02_GIT/ALL/gregory/gregory/pi/pigory.py.asc  ~/02_GIT/ALL/gregory/gregory/pi/pigory.py
+echo i... GPG verify
+gpg --verify $GREG_DIR/gregory/pi/pigory.py.asc  $GREG_DIR/gregory/pi/pigory.py
 if [ "$?" == "0" ]; then
   echo KEY OK - i need to import the public key
 fi
+
+echo i... run PIGREG
 ~/.local/bin/pigory.py
 echo sleeping 1 hour
 sleep 3600
