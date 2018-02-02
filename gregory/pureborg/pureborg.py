@@ -89,7 +89,7 @@ def UMOUNT():
         print("e... mount:error code "+ str(grepexc.returncode)+ grepexc.output.decode('utf8'))
 
 def MOUNT(mou):        
-    CMD="fusermount "+mou+" "+MOUNTPOINT
+    CMD="fusermount "+mou+" "+MOUNTPOINT  # OLD STYLE MOUNT NOT SOOPORTED
     CMD="borg mount "+mou+" "+MOUNTPOINT
     print("i...",CMD)
     try:
@@ -242,6 +242,10 @@ def mail_out_results( SIG, ok, nokq , nok):
 
 
 def unmount_sshfs(dest):
+    """
+       this should be able to (u)mount  sshfs://  defined by
+          e.g.   ~/BORG/pim    pim:/home/pi/.myservice
+    """
     CMD="fusermount -u "+dest
     logger.infoC( CMD )
     try:
@@ -298,6 +302,10 @@ def flush_mysql( server_folder ):
     
     
 def mount_sshfs( server_folder):
+    """
+      this should be able to mount sshfs  like    pim:/home/pi/.myservice
+           and backup from it
+    """
     MODIR="~/BORGBACKUP/mount_sshfs/"
     MODIR=os.path.expanduser(MODIR)
     if not os.path.isdir(MODIR):
@@ -445,9 +453,15 @@ def borg_create( repo , sig, directory ):
 
 
 
+
+
+
 def borg_prune( repo , sig, directory ):
     """
     borg prune -v --list --keep-daily=7 --keep-weekly=4 --keep-monthly=-1 /path/to/repo
+           this means  last 7 days
+                       last 4 weeks
+                       every month 1 backup forever (-1)
     """
     OPTIONS="  -v --list --keep-daily=10 --keep-weekly=4 --keep-monthly=-1 "
     CMD="borg prune "+OPTIONS+" "+repo
@@ -618,6 +632,7 @@ for qq in results:
     print(qq,"\n")
 for x in UNMOUNT_THESE:
     logger.info("fusermount -u "+x)
-    CMD="fusermount -u "+x
+    CMD="fusermount -u "+x  # 20180202 : problem on edie wit /media/ojr/FLASh
+    CMD="umount "+x
     res=subprocess.check_output( CMD.split() )#.split()[0].decode("utf8").rstrip()
     #print(res)
