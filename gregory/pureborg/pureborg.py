@@ -75,6 +75,8 @@ CONFIGFILE=os.environ['HOME']+"/.pureborg.pairs"
 ######## FROM A TEST WITH ZENITY #######  MOUNT THE BACKUP
 from zenipy import calendar,message,error,warning,question,entry,password,file_selection,scale,color_selection,zlist
 
+import  json # FOR MONGO
+
 MOUNTPOINT=os.path.expanduser("~/BORGBACKUP/recovery_mount_point")
 if not os.path.isdir( MOUNTPOINT ):
     print("!... creating",MOUNTPOINT)
@@ -260,6 +262,60 @@ def unmount_sshfs(dest):
 
 
 
+def flush_mongo( server_folder ):
+    #mongodump --host localhost --port 27017 --username ojr --password "xxx" --db test  --out ./mongodump-`date +%Y%m%d_%H%M%S` --authenticationDatabase admin
+    FILE=os.path.expanduser("~/.pymongo.mongo")
+    with open( FILE , 'r' ) as f:
+        dict=json.load( f )
+    MODIR="~/BORGBACKUP/mount_mongo/"  # destination
+    MODIR=os.path.expanduser(MODIR)
+    if not os.path.isdir(MODIR):
+        logger.error("I need to have "+MODIR+" to backup")
+        CMD="mkdir -p "+MODIR
+        res=subprocess.check_output( CMD, shell=True ).decode("utf8")
+        logger.infoP("directory "+CMD+" created")
+    # ----
+    mongo_file = os.path.expanduser( server_folder.split("mongo:")[1]  )
+    mongo_table= os.path.basename( os.path.splitext(mongo_file)[0] ) # this will be an extension to PATH
+    if mongo_table[0]==".": mongo_table=mongo_table[1:]
+    logger.info( "MONGO to BACKUP: "+ mongo_file )
+    allconf=[]
+    CMD1=""
+    CMD2=""
+    FROMPATH=MODIR+mongo_table # one NOsql  BOBAKPATH + elektromery  # bad naminngg....
+    #
+    logger.info("preparing to flush mongo to: "+FROMPATH)
+    CMD1="mongodump --host "+dict['host']+" --port 27017 --username "+dict['username']+" --password "+dict['password']+" --db "+'test'+" --authenticationDatabase admin   --out "+ FROMPATH
+    CMD2="mongodump --host "+dict['host']+" --port 27017 --username "+dict['username']+" --password "+dict['password']+" --db "+'data'+" --authenticationDatabase admin   --out "+ FROMPATH
+    #
+    #   TEST AND DATA  AFTER
+    try:
+        logger.info( CMD1 )
+        res=subprocess.check_output( CMD1, shell=True ).decode("utf8")
+        #return FROMPATH # not yet
+    except subprocess.CalledProcessError as grepexc:
+        logger.error("flushMONGO:error code "+ str(grepexc.returncode)+ grepexc.output.decode('utf8'))
+        logger.error("cannot do mongodump") # MOSTLY already EXist
+        countdown("problem",10)
+        return "xx"        
+    try:
+        logger.info( CMD2 )
+        res=subprocess.check_output( CMD2, shell=True ).decode("utf8")
+        return FROMPATH
+    except subprocess.CalledProcessError as grepexc:
+        logger.error("flushMONGO:error code "+ str(grepexc.returncode)+ grepexc.output.decode('utf8'))
+        logger.error("cannot do mongodump") # MOSTLY already EXist
+        countdown("problem",10)
+        return "xx"        
+    return 
+
+
+
+
+
+
+
+
 
 
 def flush_mysql( server_folder ):
@@ -402,6 +458,17 @@ def borg_create( repo , sig, directory ):
     When backing up   MYSQL ....    take directory   mysql:
     
     """
+    if directory.split(":")[0]=="mongo":
+        # ~/BORGBACKUP/REPO_mysql_elektromery  mongo:~/.pymongo.mongo
+        logger.infoC("MONGO                 ")
+        res=flush_mongo( directory )   # real flush mysql ONE TABLE
+        if res=="xx": return res
+        logger.info("mongo flushed into a temporary file "+res)
+        directory=os.path.dirname(res)
+        #####quit()
+        ###return "ok"
+    #quit()
+    
     if directory.split(":")[0]=="mysql":
         # I NEED to solve the problem of backup ONE TABLE x ALL TABLES
         # maybe line like this  WILL SOLVE IT:
@@ -413,7 +480,8 @@ def borg_create( repo , sig, directory ):
         directory=os.path.dirname(res)
         #####quit()
         ###return "ok"
-    #quit()    
+    #quit()
+    
     # if directory  is ssh address:   ~ must be expanded
     if not os.path.isdir( os.path.expanduser(directory) ):
         logger.warning("directory "+directory+" doesnt exist")
