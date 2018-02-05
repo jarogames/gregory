@@ -285,12 +285,12 @@ def flush_mongo( server_folder ):
     FROMPATH=MODIR+mongo_table # one NOsql  BOBAKPATH + elektromery  # bad naminngg....
     #
     logger.info("preparing to flush mongo to: "+FROMPATH)
-    CMD1="mongodump --host "+dict['host']+" --port 27017 --username "+dict['username']+" --password "+dict['password']+" --db "+'test'+" --authenticationDatabase admin   --out "+ FROMPATH
-    CMD2="mongodump --host "+dict['host']+" --port 27017 --username "+dict['username']+" --password "+dict['password']+" --db "+'data'+" --authenticationDatabase admin   --out "+ FROMPATH
+    CMD1="mongodump --host "+dict['host']+" --port 27017 --username "+dict['username']+" --password "+dict['password']+" --db "+'test'+" --authenticationDatabase "+dict['authSource']+"  --out "+ FROMPATH
+    CMD2="mongodump --host "+dict['host']+" --port 27017 --username "+dict['username']+" --password "+dict['password']+" --db "+'data'+" --authenticationDatabase "+dict['authSource']+"   --out "+ FROMPATH
     #
     #   TEST AND DATA  AFTER
     try:
-        logger.info( CMD1 )
+        logger.info( "...mogodump test collection" )
         res=subprocess.check_output( CMD1, shell=True ).decode("utf8")
         #return FROMPATH # not yet
     except subprocess.CalledProcessError as grepexc:
@@ -299,7 +299,7 @@ def flush_mongo( server_folder ):
         countdown("problem",10)
         return "xx"        
     try:
-        logger.info( CMD2 )
+        logger.info( 'mongodump data collection' )
         res=subprocess.check_output( CMD2, shell=True ).decode("utf8")
         return FROMPATH
     except subprocess.CalledProcessError as grepexc:
