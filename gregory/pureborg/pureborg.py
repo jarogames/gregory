@@ -50,6 +50,8 @@ from gregory.mymod import mymod   # this is ok with gregory install
 mymod.argparse_ini()
 mymod.parser.add_argument('--list', '-l',action="store_true", help='list')
 mymod.parser.add_argument('--mount', '-m',action="store_true", help='borg mount with zenity')
+mymod.parser.add_argument('--config', '-c',default="~/.pureborg.pairs", help='selecto other config than ~/.pureborg.pairs')
+mymod.parser.add_argument('--test', '-t',action="store_true", help='PERFORM PREDEF TEST!!!-doesnt work')
 mymod.argparse_fin()
 mymod.logging_ini()
 mymod.logging_fin()
@@ -67,10 +69,13 @@ import glob  # i want to parse ~/.*  config
 
 #CONFIGFILE=os.environ['HOME']+"/.borgbackup_pairs"
 CONFIGFILE=os.environ['HOME']+"/.pureborg.pairs"
-
+###  WE WIIL FET IT AFTER  ARGS
+#    AND USE os.path.expanduser
 
 ######## FROM A TEST WITH ZENITY #######  MOUNT THE BACKUP
 from zenipy import calendar,message,error,warning,question,entry,password,file_selection,scale,color_selection,zlist
+
+import  json # FOR MONGO
 
 MOUNTPOINT=os.path.expanduser("~/BORGBACKUP/recovery_mount_point")
 if not os.path.isdir( MOUNTPOINT ):
@@ -192,7 +197,7 @@ def get_signature():
 
 def load_addr_repo_pairs():
     global logger
-    logger.info("going to INIT /load_repo_pairs/")
+    logger.info("going to INIT /load_repo_pairs/ of config "+CONFIGFILE)
     li=[]
     try:
         with open(CONFIGFILE) as f:
@@ -261,9 +266,70 @@ def unmount_sshfs(dest):
 
 
 
+def flush_mongo( server_folder ):
+    #mongodump --host localhost --port 27017 --username ojr --password "xxx" --db test  --out ./mongodump-`date +%Y%m%d_%H%M%S` --authenticationDatabase admin
+    FILE=os.path.expanduser("~/.pymongo.mongo")
+    with open( FILE , 'r' ) as f:
+        dict=json.load( f )
+    MODIR="~/BORGBACKUP/mount_mongo/"  # destination
+    MODIR=os.path.expanduser(MODIR)
+    if not os.path.isdir(MODIR):
+        logger.error("I need to have "+MODIR+" to backup")
+        CMD="mkdir -p "+MODIR
+        res=subprocess.check_output( CMD, shell=True ).decode("utf8")
+        logger.infoP("directory "+CMD+" created")
+    # ----
+    mongo_file = os.path.expanduser( server_folder.split("mongo:")[1]  )
+    mongo_table= os.path.basename( os.path.splitext(mongo_file)[0] ) # this will be an extension to PATH
+    if mongo_table[0]==".": mongo_table=mongo_table[1:]
+    logger.info( "MONGO to BACKUP: "+ mongo_file )
+    allconf=[]
+    CMD1=""
+    CMD2=""
+    FROMPATH=MODIR+mongo_table # one NOsql  BOBAKPATH + elektromery  # bad naminngg....
+    #
+    logger.info("preparing to flush mongo to: "+FROMPATH)
+    CMD1="mongodump --host "+dict['host']+" --port 27017 --username "+dict['username']+" --password "+dict['password']+" --db "+'test'+" --authenticationDatabase "+dict['authSource']+"  --out "+ FROMPATH
+    CMD2="mongodump --host "+dict['host']+" --port 27017 --username "+dict['username']+" --password "+dict['password']+" --db "+'data'+" --authenticationDatabase "+dict['authSource']+"   --out "+ FROMPATH
+    #
+    #   TEST AND DATA  AFTER
+    try:
+        logger.info( "...mogodump test collection" )
+        res=subprocess.check_output( CMD1, shell=True ).decode("utf8")
+        #return FROMPATH # not yet
+    except subprocess.CalledProcessError as grepexc:
+        logger.error("flushMONGO:error code "+ str(grepexc.returncode)+ grepexc.output.decode('utf8'))
+        logger.error("cannot do mongodump") # MOSTLY already EXist
+        countdown("problem",10)
+        return "xx"        
+    try:
+        logger.info( 'mongodump data collection' )
+        res=subprocess.check_output( CMD2, shell=True ).decode("utf8")
+        return FROMPATH
+    except subprocess.CalledProcessError as grepexc:
+        logger.error("flushMONGO:error code "+ str(grepexc.returncode)+ grepexc.output.decode('utf8'))
+        logger.error("cannot do mongodump") # MOSTLY already EXist
+        countdown("problem",10)
+        return "xx"        
+    return 
+
+
+
+
+
+
+
+
 
 
 def flush_mysql( server_folder ):
+    """
+    pojede vsechny  ~/.*.mysql   NONOO
+    NONONO  ... I TRY ONE TABLE  ... .elektromery.mysql
+    
+    ~/BORGBACKUP/REPO_test1  mysql:~/.elektromery.mysql
+
+    """
     MODIR="~/BORGBACKUP/mount_mysql/"
     MODIR=os.path.expanduser(MODIR)
     if not os.path.isdir(MODIR):
@@ -273,20 +339,28 @@ def flush_mysql( server_folder ):
         logger.infoP("directory "+CMD+" created")
         #quit()
     # directory created.....
-    mysqls=glob.glob( os.path.expanduser("~/.*.mysql") )
-    logger.info( "AvailableMySQLs: "+" ".join(mysqls) )
+    #mysqls=glob.glob( os.path.expanduser("~/.*.mysql") )
+    #  I HAVE THIS:      mysql:~/.elektromery.mysql
+    # I NEED THIS:       ~/BORGBACKUP/mount_mysql/elektromery
+    mysql_file = os.path.expanduser( server_folder.split("mysql:")[1]  )
+    mysql_table= os.path.basename( os.path.splitext(mysql_file)[0] ) # this will be an extension to PATH
+    if mysql_table[0]==".": mysql_table=mysql_table[1:]
+    logger.info( "MySQL to BACKUP: "+ mysql_file )
     allconf=[]
     CMD=""
-    FROMPATH=MODIR+"all-databases_in_edie.mysql"
-    for onesql in mysqls:
-        with open( onesql ) as f:
-            logger.infoC("mysql config readout: "+onesql)
-            allconf=f.readlines()
-        if allconf[0].rstrip()=="localhost":
-            CMD= "mysqldump -u "+allconf[1].rstrip()+" -p"+allconf[2].rstrip()+" --all-databases > "+FROMPATH
-            logger.info("preparing to flush mysql to: "+FROMPATH)
-        else:
-            logger.info("not localhost sql: ",onesql)
+    FROMPATH=MODIR+mysql_table # one sql  BOBAKPATH + elektromery  # bad naminngg....
+    #
+    #mysqls=[]
+    #mysqls.append( mysql )
+    #for onesql in mysqls:
+    with open( mysql_file ) as f:  # here i want to open .MYSQLFILE
+        logger.infoC("mysql config readout: "+ mysql_file )
+        allconf=f.readlines()
+    if allconf[0].rstrip()=="localhost":
+        logger.info("preparing to flush mysql to: "+FROMPATH)
+        CMD= "mysqldump -u "+allconf[1].rstrip()+" -p"+allconf[2].rstrip()+" --all-databases > "+FROMPATH
+    else:
+        logger.info("not localhost sql: ", mysql_file )
     #print( CMD )
     try:
         res=subprocess.check_output( CMD, shell=True ).decode("utf8")
@@ -340,7 +414,7 @@ def get_mountpoints(repo):
     lines=[ x.rstrip() for x in lines if x[0]!="#"]
     mpoi=[ x.split()[1] for x in lines ]
     mpoi=[ x for x in mpoi if ( x.find("/mnt/")>=0 or x.find("/media")>=0 ) ]
-    print(  mpoi )
+    print(  "D...  get_mountpoints() ... from /etc/fstab: ",mpoi )
     moun=[ x for x in mpoi if repo.find(x)>=0 ]
     if len(moun)>0:
         if os.path.ismount( moun[0] ):
@@ -388,14 +462,34 @@ def borg_create( repo , sig, directory ):
     #====   ssh address (MyBookLive e.g.)
     # if not directory=> can be ssh:
     #                 => can be mysql:
+    """
+    When backing up   MYSQL ....    take directory   mysql:
+    
+    """
+    if directory.split(":")[0]=="mongo":
+        # ~/BORGBACKUP/REPO_mysql_elektromery  mongo:~/.pymongo.mongo
+        logger.infoC("MONGO                 ")
+        res=flush_mongo( directory )   # real flush mysql ONE TABLE
+        if res=="xx": return res
+        logger.info("mongo flushed into a temporary file "+res)
+        directory=os.path.dirname(res)
+        #####quit()
+        ###return "ok"
+    #quit()
+    
     if directory.split(":")[0]=="mysql":
+        # I NEED to solve the problem of backup ONE TABLE x ALL TABLES
+        # maybe line like this  WILL SOLVE IT:
+        # ~/BORGBACKUP/REPO_mysql_elektromery  mysql:~/.elektromery.mysql
         logger.infoC("MYSQL                 ")
-        res=flush_mysql( directory )
+        res=flush_mysql( directory )   # real flush mysql ONE TABLE
         if res=="xx": return res
         logger.info("mysql flushed into a temporary file "+res)
         directory=os.path.dirname(res)
         #####quit()
         ###return "ok"
+    #quit()
+    
     # if directory  is ssh address:   ~ must be expanded
     if not os.path.isdir( os.path.expanduser(directory) ):
         logger.warning("directory "+directory+" doesnt exist")
@@ -521,13 +615,13 @@ def borg_list( repo ):
         # deosnot exist ... error 2
         logger.error("list: error code "+ str(grepexc.returncode)+ grepexc.output.decode('utf8'))
         # try to mount ..... owncloud case 
-        get_mountpoints(repo)
+        get_mountpoints(repo) ##
         return None
     if not reslist[-1].rstrip()=="": 
         res=reslist[-1].split()[0]
     else:
         return ""
-    logger.infoP( res )
+    logger.infoP( "... BORGLIST result ...  "+res )
     borg_info( repo, res )
     return res
 
@@ -563,10 +657,16 @@ def countdown(txt, n):
 
 
 
+#os.environ['HOME']+"/.pureborg.pairs"
+CONFIGFILE= os.path.expanduser( mymod.args.config )
+print(CONFIGFILE)
 
 SIGNATURE=get_signature()
 logger.info( SIGNATURE )
-pairs=load_addr_repo_pairs()
+pairs=load_addr_repo_pairs()  # use configfile
+
+
+
 
 if mymod.args.list:
     logger.info("list only")
@@ -605,7 +705,7 @@ for li in pairs:
             borg_init( li[0] )
         last=""
     if last is "": # empty line
-        logger.warning("there was empty line in repo ... probably totaly new repo")
+        logger.warning("there was empty line in repo ... probably TOTALY NEW REPO")
         #countdown("there was empty line in repo",3)
         #continue
     logger_head.infoC(last+" ==> "+SIGNATURE)
