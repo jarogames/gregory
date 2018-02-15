@@ -2,7 +2,8 @@
 ##!/usr/bin/env python3
 #
 #    verify  pip3 packages (zenipy, zmq?,  apt borgbackup, notify-send: libnotify-bin
-#
+#/usr/lib/notification-daemon/notification-daemon start&
+# for LXDE !!!!!!!!!
 #
 #  /etc/fstab ========================= FOR USB :
 # UUID=9E70-9058  /media/ojr/9E70-9058  auto rw,user,exec,umask=000,nofail  0 3
