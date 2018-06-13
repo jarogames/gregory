@@ -349,17 +349,24 @@ def flush_mysql( server_folder ):
     mysql_file = os.path.expanduser( server_folder.split("mysql:")[1]  )
     mysql_table= os.path.basename( os.path.splitext(mysql_file)[0] ) # this will be an extension to PATH
     if mysql_table[0]==".": mysql_table=mysql_table[1:]
-    logger.info( "MySQL to BACKUP: "+ mysql_file )
+    # in the test I have mysql:aaa;  mysql_file==aaa; crashes
+    logger.info( "MySQL to BACKUP:  file: "+ mysql_file )
+    logger.info( "MySQL to BACKUP:  table: "+ mysql_table )
     allconf=[]
     CMD=""
     FROMPATH=MODIR+mysql_table # one sql  BOBAKPATH + elektromery  # bad naminngg....
     #
     #mysqls=[]
     #mysqls.append( mysql )
-    #for onesql in mysqls:
+    #for onesql in mysqls:     mysql_file==aaa in test config
+    if not os.path.isfile( mysql_file):
+        logger.error("MySQL credentials file does not exist : "+mysql_file)
+        logger.error("MySQL backup FAIL")
+        return "xx"
     with open( mysql_file ) as f:  # here i want to open .MYSQLFILE
         logger.infoC("mysql config readout: "+ mysql_file )
         allconf=f.readlines()
+    # _---- if localhost:  backup all databases !!!!!!
     if allconf[0].rstrip()=="localhost":
         logger.info("preparing to flush mysql to: "+FROMPATH)
         CMD= "mysqldump -u "+allconf[1].rstrip()+" -p"+allconf[2].rstrip()+" --all-databases > "+FROMPATH
