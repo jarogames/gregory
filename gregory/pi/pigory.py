@@ -33,7 +33,7 @@ import argparse
 #####################################
 #  ARGUMENTS
 #####################################
-parser=argparse.ArgumentParser(description="")
+parser=argparse.ArgumentParser(description="",usage="", formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument('-s','--show', action="store_true", help='')
 parser.add_argument('--debug', action="store_true", help='')#,required=True
 args=parser.parse_args()

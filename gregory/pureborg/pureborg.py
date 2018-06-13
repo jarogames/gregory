@@ -1,6 +1,10 @@
 #!/usr/bin/python3
 ##!/usr/bin/env python3
 #
+#    verify  pip3 packages (zenipy, zmq?,  apt borgbackup, notify-send: libnotify-bin
+#/usr/lib/notification-daemon/notification-daemon start&
+# for LXDE !!!!!!!!!
+#
 #  /etc/fstab ========================= FOR USB :
 # UUID=9E70-9058  /media/ojr/9E70-9058  auto rw,user,exec,umask=000,nofail  0 3
 # UUID=9E70-9058  /media/ojr/9E70-9058  auto rw,user,exec,umask=000,nofail  0 3
@@ -140,7 +144,7 @@ def MOUNTUMOUNT():
 
 def set_environment():
     # i want unity or xfce4 - on p34
-    CMD="pgrep -u "+os.environ['USER']+" xfce4|unity-panel"
+    CMD="pgrep -u "+os.environ['USER']+" xfce4|unity-panel|lxsession"
     pid=subprocess.check_output( CMD.split() ).split()[0].decode("utf8").rstrip()
     print("I have PID", pid)
     CMD="grep -z DBUS_SESSION_BUS_ADDRESS /proc/"+pid+"/environ"
@@ -408,13 +412,18 @@ def mount_sshfs( server_folder):
 
 UNMOUNT_THESE=[]
 def get_mountpoints(repo):
+    logger.info("looking at mountpoints in fstab")
     global UNMOUNT_THESE
     with open("/etc/fstab") as f:
         lines=f.readlines()
-    lines=[ x.rstrip() for x in lines if x[0]!="#"]
-    mpoi=[ x.split()[1] for x in lines ]
+    lines=[ x for x in lines if len(x)>7]  # no empty lines
+    lines=[ x.rstrip() for x in lines if x[0]!="#"] # no comments
+    mpoi=[ x.split()[1] for x in lines ]  # mnt  media
+    logger.info("ok, second names listed")
     mpoi=[ x for x in mpoi if ( x.find("/mnt/")>=0 or x.find("/media")>=0 ) ]
     print(  "D...  get_mountpoints() ... from /etc/fstab: ",mpoi )
+    logger.info("ok, MNT AND MEDIA")
+
     moun=[ x for x in mpoi if repo.find(x)>=0 ]
     if len(moun)>0:
         if os.path.ismount( moun[0] ):
